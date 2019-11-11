@@ -26,6 +26,8 @@ namespace StatisticalLearning.ConsoleClient
             var rse = CalculateResidualStandardError(data, rss);
             var seB0 = CalculateStandardErrorIntercept(data, ssX, avgX, rse);
             var seB1 = CalculateStandardErrorSlope(ssX, rse);
+            var tstat0 = CalculateTStatistic(b0, 0, seB0);
+            var tstat1 = CalculateTStatistic(b1, 0, seB1);
             return new LinearRegressionReport
             {
                 B0 = b0,
@@ -33,7 +35,9 @@ namespace StatisticalLearning.ConsoleClient
                 RSS = rss,
                 RSE = rse,
                 SEB0 = seB0,
-                SEB1 = seB1
+                SEB1 = seB1,
+                TSTAT0 = tstat0,
+                TSTAT1 = tstat1
             };
         }
 
@@ -106,6 +110,15 @@ namespace StatisticalLearning.ConsoleClient
         {
             double dividend = Math.Pow(rse, 2);
             return Math.Sqrt((dividend / ssX));
+        }
+
+        /// <summary>
+        /// Compute t-statistic.
+        /// </summary>
+        /// <returns></returns>
+        private double CalculateTStatistic(double estimatedCoefficient, double referenceValue, double se)
+        {
+            return (estimatedCoefficient - referenceValue) / (se);
         }
 
         private double CalculateSumOfSquaresX(DataTable table, double avgX, string x)

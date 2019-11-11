@@ -8,5 +8,7 @@
         public double RSE { get; set; }
         public double SEB0 { get; set; }
         public double SEB1 { get; set; }
+        public double TSTAT0 { get; set; }
+        public double TSTAT1 { get; set; }
     }
 }

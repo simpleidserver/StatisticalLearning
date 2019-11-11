@@ -21,6 +21,8 @@ namespace StatisticalLearning.ConsoleClient
             Console.WriteLine($"Residual Standard Error (RSE) : {report.RSE}");
             Console.WriteLine($"Standard Error of Intercept (B0) : {report.SEB0}");
             Console.WriteLine($"Standard Error of Slope (B1) : {report.SEB1}");
+            Console.WriteLine($"t-statistic Intercept (B0) : {report.TSTAT0}");
+            Console.WriteLine($"t-statistic Slope (B1) : {report.TSTAT1}");
             Console.WriteLine("Press any key to quit the application ...");
             Console.ReadKey();
         }
