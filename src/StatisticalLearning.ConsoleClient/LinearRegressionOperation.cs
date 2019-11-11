@@ -18,24 +18,27 @@ namespace StatisticalLearning.ConsoleClient
         {
             var avgX = data.CalculateAvg(x);
             var avgY = data.CalculateAvg(y);
-            var b1 = CalculateLeastSquareSlope(data, x, y, avgX, avgY);
+            var ssX = CalculateSumOfSquaresX(data, avgX, x);
+            var ssY = CalculateSumOfSquaresY(data, avgY, y);
+            var b1 = CalculateLeastSquareSlope(data, ssX, x, y, avgX, avgY);
             var b0 = CalculateLeastSquareIntercept(b1, avgX, avgY);
             var rss = CalculateResidualSumOfSquares(data, x, y, b0, b1);
             var rse = CalculateResidualStandardError(data, rss);
-            var seB0 = CalculateStandardErrorIntercept();
-            var seB1 = CalculateStandardErrorSlope(data, x, avgX, rse);
+            var seB0 = CalculateStandardErrorIntercept(data, ssX, avgX, rse);
+            var seB1 = CalculateStandardErrorSlope(ssX, rse);
             return new LinearRegressionReport
             {
                 B0 = b0,
                 B1 = b1,
                 RSS = rss,
                 RSE = rse,
+                SEB0 = seB0,
                 SEB1 = seB1
             };
         }
 
         /// <summary>
-        /// Calculate B0(intercept estimation)
+        /// Estimate B0 (intercept)
         /// </summary>
         private double CalculateLeastSquareIntercept(double b1, double avgX, double avgY)
         {
@@ -43,20 +46,19 @@ namespace StatisticalLearning.ConsoleClient
         }
 
         /// <summary>
-        /// Calculate B1(slope estimation)
+        /// Estimate B1 (slope)
         /// </summary>
-        private double CalculateLeastSquareSlope(DataTable data, string x, string y, double avgX, double avgY)
+        private double CalculateLeastSquareSlope(DataTable data, double ssX, string x, string y, double avgX, double avgY)
         {
-            double dividend = 0, divisor = 0;
+            double dividend = 0;
             foreach (DataRow dataRow in data.Rows)
             {
                 var xi = dataRow.GetColumnValue(x);
                 var yi = dataRow.GetColumnValue(y);
                 dividend += (xi - avgX) * (yi - avgY);
-                divisor += Math.Pow(xi - avgX, 2);
             }
 
-            return dividend / divisor;
+            return dividend / ssX;
         }
 
         /// <summary>
@@ -86,26 +88,48 @@ namespace StatisticalLearning.ConsoleClient
             return Math.Sqrt((rss) / data.Rows.Count);
         }
 
-        private double CalculateStandardErrorIntercept()
+        /// <summary>
+        /// Calculate Standard Error (SE) of intercept (B0).
+        /// </summary>
+        /// <returns></returns>
+        private double CalculateStandardErrorIntercept(DataTable data, double ssX, double avgX, double rse)
         {
-            return 0;
+            var divResult = ((Math.Pow(avgX, 2) * data.Rows.Count) + ssX) / (data.Rows.Count * ssX);
+            return Math.Sqrt(Math.Pow(rse, 2) * divResult);
         }
 
         /// <summary>
         /// Calculate Standard Error (SE) of slope (B1).
         /// </summary>
         /// <returns></returns>
-        private double CalculateStandardErrorSlope(DataTable table, string x, double avgX, double rse)
+        private double CalculateStandardErrorSlope(double ssX, double rse)
         {
-            double dividend = Math.Pow(rse, 2), divisor = 0;
+            double dividend = Math.Pow(rse, 2);
+            return Math.Sqrt((dividend / ssX));
+        }
+
+        private double CalculateSumOfSquaresX(DataTable table, double avgX, string x)
+        {
+            double result = 0;
             foreach (DataRow row in table.Rows)
             {
                 var xi = row.GetColumnValue(x);
-                var tmp = xi - avgX;
-                divisor += Math.Pow((xi - avgX), 2);
+                result += Math.Pow((xi - avgX), 2);
             }
 
-            return Math.Sqrt((dividend / divisor));
+            return result;
+        }
+
+        private double CalculateSumOfSquaresY(DataTable table, double avgY, string y)
+        {
+            double result = 0;
+            foreach (DataRow row in table.Rows)
+            {
+                var yi = row.GetColumnValue(y);
+                result += Math.Pow((yi - avgY), 2);
+            }
+
+            return result;
         }
     }
 }

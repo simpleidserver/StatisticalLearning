@@ -19,6 +19,7 @@ namespace StatisticalLearning.ConsoleClient
             Console.WriteLine($"Slope (B1) estimation : {report.B1}");
             Console.WriteLine($"Residual Sum Of Squares (RSS) : {report.RSS}");
             Console.WriteLine($"Residual Standard Error (RSE) : {report.RSE}");
+            Console.WriteLine($"Standard Error of Intercept (B0) : {report.SEB0}");
             Console.WriteLine($"Standard Error of Slope (B1) : {report.SEB1}");
             Console.WriteLine("Press any key to quit the application ...");
             Console.ReadKey();
