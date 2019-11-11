@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.645
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StatisticalLearning.ConsoleClient", "src\StatisticalLearning.ConsoleClient\StatisticalLearning.ConsoleClient.csproj", "{6A4D0FF5-17F4-4602-8519-18001A1A46DB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6A4D0FF5-17F4-4602-8519-18001A1A46DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A4D0FF5-17F4-4602-8519-18001A1A46DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A4D0FF5-17F4-4602-8519-18001A1A46DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A4D0FF5-17F4-4602-8519-18001A1A46DB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B5FB09EF-729C-42B0-90A5-0BB3A33E59FA}
+	EndGlobalSection
+EndGlobal
