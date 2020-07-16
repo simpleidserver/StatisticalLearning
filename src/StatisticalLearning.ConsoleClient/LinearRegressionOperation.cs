@@ -1,4 +1,5 @@
-﻿using StatisticalLearning.ConsoleClient.Extensions;
+﻿using MathNet.Numerics.Distributions;
+using StatisticalLearning.ConsoleClient.Extensions;
 using System;
 using System.Data;
 
@@ -18,8 +19,8 @@ namespace StatisticalLearning.ConsoleClient
         {
             var avgX = data.CalculateAvg(x);
             var avgY = data.CalculateAvg(y);
-            var ssX = CalculateSumOfSquaresX(data, avgX, x);
-            var ssY = CalculateSumOfSquaresY(data, avgY, y);
+            var ssX = CalculateSumOfSquares(data, avgX, x);
+            var ssY = CalculateSumOfSquares(data, avgY, y);
             var b1 = CalculateLeastSquareSlope(data, ssX, x, y, avgX, avgY);
             var b0 = CalculateLeastSquareIntercept(b1, avgX, avgY);
             var rss = CalculateResidualSumOfSquares(data, x, y, b0, b1);
@@ -28,6 +29,10 @@ namespace StatisticalLearning.ConsoleClient
             var seB1 = CalculateStandardErrorSlope(ssX, rse);
             var tstat0 = CalculateTStatistic(b0, 0, seB0);
             var tstat1 = CalculateTStatistic(b1, 0, seB1);
+            var pval0 = CalculatePValue(data, tstat0);
+            var pval1 = CalculatePValue(data, tstat1);
+            var rsquare = CalculateRSquare(rss, ssY);
+            var fStat = CalculateFStatistic(data, rss, ssY, 1);
             return new LinearRegressionReport
             {
                 B0 = b0,
@@ -37,7 +42,11 @@ namespace StatisticalLearning.ConsoleClient
                 SEB0 = seB0,
                 SEB1 = seB1,
                 TSTAT0 = tstat0,
-                TSTAT1 = tstat1
+                TSTAT1 = tstat1,
+                PVAL0 = pval0,
+                PVAL1 = pval1,
+                RSQUARE = rsquare,
+                FSTAT = fStat
             };
         }
 
@@ -121,25 +130,44 @@ namespace StatisticalLearning.ConsoleClient
             return (estimatedCoefficient - referenceValue) / (se);
         }
 
-        private double CalculateSumOfSquaresX(DataTable table, double avgX, string x)
+        /// <summary>
+        /// Calculate p-value.
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        private double CalculatePValue(DataTable table, double t)
         {
-            double result = 0;
-            foreach (DataRow row in table.Rows)
-            {
-                var xi = row.GetColumnValue(x);
-                result += Math.Pow((xi - avgX), 2);
-            }
-
-            return result;
+            return 1 - StudentT.CDF(0, 1, table.Rows.Count, t);
         }
 
-        private double CalculateSumOfSquaresY(DataTable table, double avgY, string y)
+        /// <summary>
+        /// Calculate R square.
+        /// </summary>
+        /// <returns></returns>
+        private double CalculateRSquare(double rss, double ssY)
+        {
+            return (1 - (rss / ssY));
+        }
+
+        /// <summary>
+        /// Calculate F-Statistic.
+        /// </summary>
+        /// <returns></returns>
+        private double CalculateFStatistic(DataTable table, double rss, double ssY, double nbPredictors)
+        {
+            var dividend = (ssY - rss) / nbPredictors;
+            var divisor = (rss / (table.Rows.Count - nbPredictors - 1));
+            return dividend / divisor;
+        }
+
+        private double CalculateSumOfSquares(DataTable table, double avg, string label)
         {
             double result = 0;
             foreach (DataRow row in table.Rows)
             {
-                var yi = row.GetColumnValue(y);
-                result += Math.Pow((yi - avgY), 2);
+                var val = row.GetColumnValue(label);
+                result += Math.Pow((val- avg), 2);
             }
 
             return result;

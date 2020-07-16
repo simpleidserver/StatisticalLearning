@@ -10,5 +10,9 @@
         public double SEB1 { get; set; }
         public double TSTAT0 { get; set; }
         public double TSTAT1 { get; set; }
+        public double PVAL0 { get; set; }
+        public double PVAL1 { get; set; }
+        public double RSQUARE { get; set; }
+        public double FSTAT { get; set; }
     }
 }
