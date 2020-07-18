@@ -21,6 +21,64 @@ namespace StatisticalLearning.Math
             _arr = arr;
         }
 
+        public Entity ComputeDeterminant()
+        {
+            if (NbRows == 2 && NbColumns == 2)
+            {
+                return GetValue(0, 0) * GetValue(1, 1) - GetValue(0, 1) * GetValue(1, 0);
+            }
+
+            int nbDeterminant = 1;
+            Entity result = Number.Create(0);
+            for(int column = 0; column < NbColumns; column++)
+            {
+                var determinant = GetValue(0, column) * GetDeterminantMatrix(0, column).ComputeDeterminant();
+                if (nbDeterminant % 2 == 0)
+                {
+                    result -= determinant;
+                }
+                else
+                {
+                    result += determinant;
+                }
+
+                nbDeterminant++;
+            }
+
+            return result;
+        }
+
+        public Matrix GetDeterminantMatrix(int excludedRow, int excludedColumn)
+        {
+            var result = new Entity[NbRows - 1][];
+            int rowIndex = 0;
+            for(int row = 0; row < NbRows; row++)
+            {
+                if (row == excludedRow)
+                {
+                    continue;
+                }
+
+                var columns = new Entity[NbColumns - 1];
+                int columnIndex = 0;
+                for(int column = 0; column < NbColumns; column++)
+                {
+                    if (column == excludedColumn)
+                    {
+                        continue;
+                    }
+
+                    columns[columnIndex] = GetValue(row, column);
+                    columnIndex++;
+                }
+
+                result[rowIndex] = columns;
+                rowIndex++;
+            }
+
+            return new Matrix(result);
+        }
+
         public static Matrix BuildIdentityMatrix(int nbRowColumn)
         {
             var result = new Entity[nbRowColumn][];
@@ -199,6 +257,11 @@ namespace StatisticalLearning.Math
         public object Clone()
         {
             return new Matrix(_arr.Select(_ => _.ToArray()).ToArray());
+        }
+
+        private Entity[][]CloneArr()
+        {
+            return _arr.Select(_ => _.ToArray()).ToArray();
         }
     }
 }

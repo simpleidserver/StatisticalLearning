@@ -13,10 +13,10 @@ namespace StatisticalLearning.Decompositions
             var ata = matrix.Transpose().Multiply(matrix).Solve();
             VariableEntity lambda = "λ";
             var aatIdentity = Matrix.BuildIdentityMatrix(aat.NbRows);
-            var equation = aat - (lambda * aatIdentity);
+            var aatEquation = aat - (lambda * aatIdentity);
+            var aatDeterminant = aatEquation.ComputeDeterminant().Evaluate(lambda);
+            var eingenvalues = aatDeterminant.Solve(lambda);
 
-            // pouvoir faire des opérations avec des variables.
-            var sss = "";
         }
     }
 }

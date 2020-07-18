@@ -1,5 +1,7 @@
 ﻿// Copyright (c) SimpleIdServer. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
+using StatisticalLearning.Numeric;
+using System;
 using System.Linq;
 
 namespace StatisticalLearning.Entities
@@ -35,52 +37,48 @@ namespace StatisticalLearning.Entities
                     }
             }
 
-            return base.Derive();
+            return null;
         }
 
         public override Entity Eval()
         {
+            VariableEntity va = null, vb = null;
+            NumberEntity na = null, nb = null;
             var a = Children.ElementAt(0).Eval();
             var b = Children.ElementAt(1).Eval();
             Entity result = this;
-            if (a.IsNumberEntity(out NumberEntity na) && b.IsNumberEntity(out NumberEntity nb))
+            if ((a.IsNumberEntity(out na) && b.IsNumberEntity(out nb)))
             {
-                switch (Name)
-                {
-                    case Constants.Operators.MUL:
-                        result = na.Number * nb.Number;
-                        break;
-                    case Constants.Operators.SUM:
-                        result = na.Number + nb.Number;
-                        break;
-                    case Constants.Operators.DIV:
-                        result = na.Number / nb.Number;
-                        break;
-                    case Constants.Operators.SUB:
-                        result = na.Number - nb.Number;
-                        break;
-                }
-            }
-            else
-            {
-                switch (Name)
-                {
-                    case Constants.Operators.MUL:
-                        result = a * b;
-                        break;
-                    case Constants.Operators.SUM:
-                        result = a + b;
-                        break;
-                    case Constants.Operators.DIV:
-                        result = a / b;
-                        break;
-                    case Constants.Operators.SUB:
-                        result = a - b;
-                        break;
-                }
+                return EvalNumber(na, nb);
             }
 
-            return result;
+            if (Name == Constants.Operators.MUL && a.IsOperatorEntity(new[] { Constants.Operators.SUB, Constants.Operators.SUM }, out OperatorEntity oa) && b.IsOperatorEntity(new[] { Constants.Operators.SUB, Constants.Operators.SUM }, out OperatorEntity ob))
+            {
+                return EvalMultiplicationOperator(oa, ob);
+            }
+
+            if (Name == Constants.Operators.MUL && (a.IsVariableEntity(out va) || b.IsVariableEntity(out vb)) &&
+                ((a.IsNumberEntity(out na) || b.IsNumberEntity(out nb))))
+            {
+                return EvalMultiplicationOperator(va == null ? vb : va, na == null ? nb : na);
+            }
+
+            if (a.IsVariableEntity(out va) && b.IsVariableEntity(out vb))
+            {
+                return EvalVariable(va, vb);
+            }
+
+            switch (Name)
+            {
+                case Constants.Operators.MUL:
+                    return a * b;
+                case Constants.Operators.SUM:
+                    return a + b;
+                case Constants.Operators.DIV:
+                    return a / b;
+                default:
+                    return a - b;
+            }
         }
 
         public override string ToString()
@@ -89,6 +87,60 @@ namespace StatisticalLearning.Entities
             var b = Children.ElementAt(1);
             var o = Constants.MappingOperatorToSign[Name];
             return $"{a.ToString()} {o} {b.ToString()}";
+        }
+
+        private Entity EvalNumber(NumberEntity na, NumberEntity nb)
+        {
+            switch (Name)
+            {
+                case Constants.Operators.MUL:
+                    return na.Number * nb.Number;
+                case Constants.Operators.SUM:
+                    return na.Number + nb.Number;
+                case Constants.Operators.DIV:
+                    return na.Number / nb.Number;
+                default:
+                    return na.Number - nb.Number;
+            }
+        }
+
+        private Entity EvalMultiplicationOperator(OperatorEntity oa, OperatorEntity ob)
+        {
+            Func<OperatorEntity, Entity> resolveValue = (o) =>
+            {
+                if (o.Name == Constants.Operators.SUB)
+                {
+                    return Number.Create(-1) * o.Children.ElementAt(1);
+                }
+
+                return o.Children.ElementAt(1);
+            };
+            
+            var result = (oa.Children.ElementAt(0) * ob.Children.ElementAt(0) +
+                oa.Children.ElementAt(0) * resolveValue(ob) +
+                resolveValue(oa) * ob.Children.ElementAt(0) +
+                resolveValue(oa) * resolveValue(ob)).Eval();
+            return result;
+        }
+
+        private Entity EvalMultiplicationOperator(VariableEntity va, NumberEntity ne)
+        {
+            return va.Mul(ne);
+        }
+
+        private Entity EvalVariable(VariableEntity va, VariableEntity vb)
+        {
+            switch(Name)
+            {
+                case Constants.Operators.MUL:
+                    return va.Mul(vb);
+                case Constants.Operators.SUM:
+                    return va.Sum(vb);
+                case Constants.Operators.DIV:
+                    return va.Div(vb);
+                default:
+                    return va.Sub(vb);
+            }
         }
     }
 }

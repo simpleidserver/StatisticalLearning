@@ -14,12 +14,22 @@ namespace StatisticalLearning
             public const string SUB = "sub";
         }
 
+        public static class Funcs
+        {
+            public const string SQUAREROOT = "sqrt";
+        }
+
         public static Dictionary<string, string> MappingOperatorToSign = new Dictionary<string, string>
         {
             { Operators.DIV, "/" },
             { Operators.MUL, "*" },
             { Operators.SUM, "+" },
             { Operators.SUB, "-" }
+        };
+
+        public static Dictionary<string, string> MappingFuncToSign = new Dictionary<string, string>
+        {
+            { Funcs.SQUAREROOT, "√" },
         };
     }
 }

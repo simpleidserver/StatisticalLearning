@@ -87,5 +87,29 @@ namespace StatisticalLearning.Tests
             Assert.True(result.Equals(exceptedMatrix));
             Assert.True(secondResult.Equals(firstMatrix));
         }
+
+        [Fact]
+        public void When_Compute_Determinant()
+        {
+            var firstMatrix = new Matrix(new Entity[][]
+            {
+                new Entity[] { Number.Create(5), Number.Create(4), Number.Create(2) },
+                new Entity[] { Number.Create(1), Number.Create(8), Number.Create(2) },
+                new Entity[] { Number.Create(3), Number.Create(1), Number.Create(2) }
+            });
+            var secondMatrix = new Matrix(new Entity[][]
+            {
+                new Entity[] { Number.Create(1), Number.Create(2), Number.Create(3), Number.Create(4) },
+                new Entity[] { Number.Create(5), Number.Create(6), Number.Create(7), Number.Create(8) },
+                new Entity[] { Number.Create(9), Number.Create(10), Number.Create(11), Number.Create(12) },
+                new Entity[] { Number.Create(13), Number.Create(14), Number.Create(15), Number.Create(16) },
+            });
+            var firstDeterminant = firstMatrix.ComputeDeterminant().Eval() as NumberEntity;
+            var secondDeterminant = secondMatrix.ComputeDeterminant().Eval() as NumberEntity;
+            Assert.NotNull(firstDeterminant);
+            Assert.NotNull(secondDeterminant);
+            Assert.Equal(40, firstDeterminant.Number.Value);
+            Assert.Equal(0, secondDeterminant.Number.Value);
+        }
     }
 }
