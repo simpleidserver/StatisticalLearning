@@ -48,8 +48,36 @@ namespace StatisticalLearning.Tests
         public void When_Solve_Complex_Equation()
         {
             VariableEntity x = "x";
-            var res = (Number.Create(17) - x) * (Number.Create(17) - x);
-            res.Evaluate(x);
+            var equation = (Number.Create(13) - x) *
+                ((Number.Create(13) - x) * (Number.Create(8) - x) - Number.Create(4)) - Number.Create(12)  *
+                (Number.Create(12) * (Number.Create(8) - x) + Number.Create(4)) +  Number.Create(2) * 
+                (Number.Create(12) * Number.Create(-2) - (Number.Create(13) - x) * Number.Create(2));
+            var result = equation.Evaluate(x);
+            var solved = result.Solve(x);
+            Assert.NotNull(solved);
+        }
+
+        [Fact]
+        public void When_Solve_Equation_With_Variables()
+        {
+            VariableEntity x1 = "x1";
+            VariableEntity x2 = "x2";
+            VariableEntity x3 = "x3";
+            var firstEquation = x1 - x2 + Number.Create(0) * x3;
+            var secondEquation = x1 + x2;
+            var firstResult = firstEquation.Solve(x1);
+            var secondResult = secondEquation.Solve(x1);
+            Assert.Equal("x2", firstResult.ElementAt(0).ToString());
+            Assert.Equal("-1x2", secondResult.ElementAt(0).ToString());
+        }
+
+        [Fact]
+        public void When_Solve_Addition()
+        {
+            VariableEntity x1 = "x1";
+            var equation = Number.Create(-61) + x1 + Number.Create(60) + x1;
+            var result = equation.Eval();
+            Assert.Equal("2x1 + -1", result.ToString());
         }
     }
 }

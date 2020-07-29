@@ -19,7 +19,6 @@ namespace StatisticalLearning.Tests
                 new Entity[] { Number.Create(2), Number.Create(3), Number.Create(-2) }
             });
             var decomposition = new SingularValueDecomposition();
-            // TROUVER LE PROBLEME.
             decomposition.Decompose(matrix);
         }
     }

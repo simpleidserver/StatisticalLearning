@@ -21,6 +21,20 @@ namespace StatisticalLearning.Math
             _arr = arr;
         }
 
+        public int? GetPivotColumnIndex(int row)
+        {
+            var rowVector = GetRowVector(row);
+            for (int i = 0; i < rowVector.Length; i++)
+            {
+                if (rowVector[i].IsNumberEntity(out NumberEntity n) && n.Number.Value == 1)
+                {
+                    return i;
+                }
+            }
+
+            return null;
+        }
+
         public Entity ComputeDeterminant()
         {
             if (NbRows == 2 && NbColumns == 2)
@@ -29,23 +43,44 @@ namespace StatisticalLearning.Math
             }
 
             int nbDeterminant = 1;
-            Entity result = Number.Create(0);
+            Entity result = null;
             for(int column = 0; column < NbColumns; column++)
             {
                 var determinant = GetValue(0, column) * GetDeterminantMatrix(0, column).ComputeDeterminant();
-                if (nbDeterminant % 2 == 0)
+                if (result == null)
                 {
-                    result -= determinant;
+                    result = determinant;
                 }
                 else
                 {
-                    result += determinant;
+                    if (nbDeterminant % 2 == 0)
+                    {
+                        result -= determinant;
+                    }
+                    else
+                    {
+                        result += determinant;
+                    }
                 }
 
                 nbDeterminant++;
             }
 
             return result;
+        }
+
+        public Matrix Eval()
+        {
+            for (int row = 0; row < NbRows; row++)
+            {
+                for(int column = 0; column < NbColumns; column++)
+                {
+                    var record = GetValue(row, column);
+                    _arr[row][column] = record.Eval();
+                }
+            }
+
+            return this;
         }
 
         public Matrix GetDeterminantMatrix(int excludedRow, int excludedColumn)
@@ -122,6 +157,17 @@ namespace StatisticalLearning.Math
             }
 
             return new Matrix(result);
+        }
+
+        public void SwapLines(int fRow, int sRow)
+        {
+            var fVector = GetRowVector(fRow).ToList();
+            var sVector = GetRowVector(sRow).ToList();
+            for(int column = 0; column < NbColumns; column++)
+            {
+                SetValue(fRow, column, sVector[column]);
+                SetValue(sRow, column, fVector[column]);
+            }
         }
 
 

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 using StatisticalLearning.Numeric;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace StatisticalLearning.Entities
@@ -44,6 +45,7 @@ namespace StatisticalLearning.Entities
         {
             VariableEntity va = null, vb = null;
             NumberEntity na = null, nb = null;
+            OperatorEntity oa = null, ob = null;
             var a = Children.ElementAt(0).Eval();
             var b = Children.ElementAt(1).Eval();
             Entity result = this;
@@ -52,33 +54,30 @@ namespace StatisticalLearning.Entities
                 return EvalNumber(na, nb);
             }
 
-            if (Name == Constants.Operators.MUL && a.IsOperatorEntity(new[] { Constants.Operators.SUB, Constants.Operators.SUM }, out OperatorEntity oa) && b.IsOperatorEntity(new[] { Constants.Operators.SUB, Constants.Operators.SUM }, out OperatorEntity ob))
-            {
-                return EvalMultiplicationOperator(oa, ob);
-            }
-
-            if (Name == Constants.Operators.MUL && (a.IsVariableEntity(out va) || b.IsVariableEntity(out vb)) &&
-                ((a.IsNumberEntity(out na) || b.IsNumberEntity(out nb))))
-            {
-                return EvalMultiplicationOperator(va == null ? vb : va, na == null ? nb : na);
-            }
-
             if (a.IsVariableEntity(out va) && b.IsVariableEntity(out vb))
             {
-                return EvalVariable(va, vb);
+                return EvalVariable(Name, va, vb);
+            }
+
+            if (Name == Constants.Operators.MUL)
+            {
+                return EvalMultiplicationOperator(a, b);
+            }
+
+            if (Name == Constants.Operators.SUM || Name == Constants.Operators.SUB)
+            {
+                return EvalSumOrSubOperator(Name, a, b);
             }
 
             switch (Name)
             {
                 case Constants.Operators.MUL:
                     return a * b;
-                case Constants.Operators.SUM:
-                    return a + b;
                 case Constants.Operators.DIV:
                     return a / b;
-                default:
-                    return a - b;
             }
+
+            return null;
         }
 
         public override string ToString()
@@ -104,33 +103,132 @@ namespace StatisticalLearning.Entities
             }
         }
 
-        private Entity EvalMultiplicationOperator(OperatorEntity oa, OperatorEntity ob)
+        private static Entity EvalMultiplicationOperator(Entity oa, Entity ob)
         {
-            Func<OperatorEntity, Entity> resolveValue = (o) =>
+            NumberEntity na = null, nb = null;
+            VariableEntity va = null, vb = null;
+            if ( (oa.IsVariableEntity(out va) || ob.IsVariableEntity(out vb)) &&
+                (oa.IsNumberEntity(out na) || ob.IsNumberEntity(out nb)) )
             {
-                if (o.Name == Constants.Operators.SUB)
-                {
-                    return Number.Create(-1) * o.Children.ElementAt(1);
-                }
+                return EvalMultiplicationOperator(va == null ? vb : va, na == null ? nb : na);
+            }
 
-                return o.Children.ElementAt(1);
-            };
-            
-            var result = (oa.Children.ElementAt(0) * ob.Children.ElementAt(0) +
-                oa.Children.ElementAt(0) * resolveValue(ob) +
-                resolveValue(oa) * ob.Children.ElementAt(0) +
-                resolveValue(oa) * resolveValue(ob)).Eval();
-            return result;
+            var oaChildren = GetSumOrSubEntities(oa);
+            var obChildren = GetSumOrSubEntities(ob);
+            Entity result = null;
+            foreach(var oaChild in oaChildren)
+            {
+                foreach(var obChild in obChildren)
+                {
+                    if(result == null)
+                    {
+                        result = oaChild * obChild;
+                    }
+                    else
+                    {
+                        result = result + (oaChild * obChild);
+                    }
+                }
+            }
+
+            return result.Eval();
         }
 
-        private Entity EvalMultiplicationOperator(VariableEntity va, NumberEntity ne)
+        private static Entity EvalMultiplicationOperator(VariableEntity va, NumberEntity ne)
         {
             return va.Mul(ne);
         }
 
-        private Entity EvalVariable(VariableEntity va, VariableEntity vb)
+        private static Entity EvalSumOrSubOperator(string name, Entity a, Entity b)
         {
-            switch(Name)
+            VariableEntity va = null, vb = null;
+            NumberEntity na = null, nb = null;
+            OperatorEntity oa = null, ob = null;
+            // (x + x2) + 3
+            // (x + x2) + x5
+            if ((a.IsOperatorEntity(new string[] { Constants.Operators.SUM, Constants.Operators.SUB }, out oa) || b.IsOperatorEntity(new string[] { Constants.Operators.SUM, Constants.Operators.SUB }, out ob)) &&
+                ((a.IsVariableEntity(out va) || b.IsVariableEntity(out vb)) ||
+                ((a.IsNumberEntity(out na) || b.IsNumberEntity(out nb)))))
+            {
+                var children = new List<Entity>();
+                if (ob != null)
+                {
+                    children.Add(a);
+                    if (name == Constants.Operators.SUB)
+                    {
+                        ob = (Number.Create(-1) * ob).Eval() as OperatorEntity;
+                    }
+
+                    var entities = GetSumOrSubEntities(ob);
+                    children.AddRange(GetSumOrSubEntities(ob));
+                }
+                else
+                {
+                    children.AddRange(GetSumOrSubEntities(oa));
+                    if (name == Constants.Operators.SUB)
+                    {
+                        b = (Number.Create(-1) * b).Eval();
+                    }
+
+                    children.Add(b);
+                }
+
+                var variables = children.Where(_ => _ is VariableEntity).GroupBy(_ => ((VariableEntity)_).Name + ((VariableEntity)_).Pow);
+                var numbers = children.Where(_ => _ is NumberEntity);
+                Entity variableEntity = null;
+                foreach (var grp in variables)
+                {
+                    Entity subVariableEntity = null;
+                    foreach (var variable in grp)
+                    {
+                        if (subVariableEntity == null)
+                        {
+                            subVariableEntity = variable;
+                        }
+                        else
+                        {
+                            subVariableEntity = (subVariableEntity + variable).Eval();
+                        }
+                    }
+
+                    if (variableEntity == null)
+                    {
+                        variableEntity = subVariableEntity;
+                    }
+                    else
+                    {
+                        variableEntity = variableEntity + subVariableEntity;
+                    }
+                }
+
+                Entity numberEntity = Number.Create(0);
+                foreach (var number in numbers)
+                {
+                    numberEntity = (numberEntity + number).Eval();
+                }
+
+                return variableEntity + numberEntity;
+            }
+
+            // a == 0 or b == 0
+            bool isAEmpty = false, isBEmpty = false;
+            if (a.IsNumberEntity(out na) && (isAEmpty= na.Number.Value == 0) || b.IsNumberEntity(out nb) && (isBEmpty = nb.Number.Value == 0))
+            {
+                return isAEmpty ? b : a;
+            }
+
+            switch(name)
+            {
+                case Constants.Operators.SUM:
+                    return a + b;
+                default:
+                    return a - b;
+            }
+        }
+
+        private static Entity EvalVariable(string name, VariableEntity va, VariableEntity vb)
+        {
+            switch(name)
             {
                 case Constants.Operators.MUL:
                     return va.Mul(vb);

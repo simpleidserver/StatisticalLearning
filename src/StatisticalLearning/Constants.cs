@@ -17,6 +17,9 @@ namespace StatisticalLearning
         public static class Funcs
         {
             public const string SQUAREROOT = "sqrt";
+            public const string POW = "pow";
+            public const string ACOS = "acos";
+            public const string COS = "cos";
         }
 
         public static Dictionary<string, string> MappingOperatorToSign = new Dictionary<string, string>
@@ -30,6 +33,8 @@ namespace StatisticalLearning
         public static Dictionary<string, string> MappingFuncToSign = new Dictionary<string, string>
         {
             { Funcs.SQUAREROOT, "√" },
+            { Funcs.ACOS, "acos" },
+            { Funcs.POW, "^" }
         };
     }
 }

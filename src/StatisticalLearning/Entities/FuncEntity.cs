@@ -7,14 +7,16 @@ namespace StatisticalLearning.Entities
 {
     public class FuncEntity : Entity
     {
-        public FuncEntity(string name, Entity child)
+        public FuncEntity(string name, Entity child, Entity subChild = null)
         {
             Name = name;
             Child = child;
+            SubChild = subChild;
         }
 
         public string Name { get; private set; }
         public Entity Child { get; private set; }
+        public Entity SubChild { get; private set; }
 
         public override Entity Derive()
         {
@@ -24,12 +26,37 @@ namespace StatisticalLearning.Entities
         public override Entity Eval()
         {
             Entity res = null;
-            if (Child.IsNumberEntity(out NumberEntity result))
+            var evaluated = Child.Eval();
+            if (evaluated.IsNumberEntity(out NumberEntity result))
             {
                 switch(Name)
                 {
                     case Constants.Funcs.SQUAREROOT:
                         res = Number.Create(System.Math.Sqrt(result.Number.Value));
+                        break;
+                    case Constants.Funcs.POW:
+                        if (SubChild.IsNumberEntity(out NumberEntity subResult))
+                        {
+                            var value = result.Number.Value;
+                            bool isNegative = value < 0;
+                            if (isNegative)
+                            {
+                                value = -value;
+                            }
+
+                            res = Number.Create(System.Math.Pow(value, subResult.Number.Value));
+                            if (isNegative)
+                            {
+                                res = Number.Create(-1) * res;
+                            }
+                        }
+
+                        break;
+                    case Constants.Funcs.ACOS:
+                        res = Number.Create(System.Math.Acos(result.Number.Value));
+                        break;
+                    case Constants.Funcs.COS:
+                        res = Number.Create(System.Math.Cos(result.Number.Value));
                         break;
                 }
             }

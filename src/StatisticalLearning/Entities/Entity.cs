@@ -119,6 +119,18 @@ namespace StatisticalLearning.Entities
         public abstract Entity Derive();
         public abstract Entity Eval();
 
+
+        public void Assign(VariableEntity variable, NumberEntity number)
+        {
+            var children = new List<VariableEntity>();
+            GetVariables(variable, children);
+            foreach(var child in children)
+            {
+                child.AssignNumber(number);
+            }
+        }
+
+
         public IEnumerable<Entity> Solve(VariableEntity variable)
         {
             var dic = new Dictionary<int, Entity>();
@@ -141,10 +153,26 @@ namespace StatisticalLearning.Entities
                 dic.Add(0, Number.Create(0));
             }
 
-            var orders = dic.OrderBy(_ => _.Key);
+            var orders = dic.OrderBy(_ => _.Key).ToList();
+            if (orders.Last().Value.IsNumberEntity(out NumberEntity last))
+            {
+                if (last.Number.Value < 0)
+                {
+                    for(var i = 0; i < orders.Count(); i++)
+                    {
+                        orders[i] = new KeyValuePair<int, Entity>(orders[i].Key, (Number.Create(-1) * orders[i].Value).Eval());
+                    }
+                }
+            }
+
             if (orders.Count() == 2)
             {
-                var expr = (Number.Create(-1) * orders.ElementAt(orders.ElementAt(0).Key).Value) / orders.ElementAt(orders.ElementAt(1).Key).Value;
+                var expr = (Number.Create(-1) * orders.ElementAt(orders.ElementAt(0).Key).Value);
+                if (orders.ElementAt(1).Key != 1)
+                {
+                    expr /= orders.ElementAt(orders.ElementAt(1).Key).Value;
+                }
+
                 var value = expr.Eval();
                 var power = orders.ElementAt(1).Key;
                 for (var i = 2; i <= power; i++)
@@ -171,6 +199,53 @@ namespace StatisticalLearning.Entities
                     var x1 = (Number.Create(-1) * b - MathEntity.Sqrt(number)) / Number.Create(2) * a;
                     var x2 = (Number.Create(-1) * b + MathEntity.Sqrt(number)) / Number.Create(2) * a;
                     return new Entity[] { x1.Eval(), x2.Eval() };
+                }
+            }
+            else if(orders.Last().Key == 3)
+            {
+                // http://www2.trinity.unimelb.edu.au/~rbroekst/MathX/Cubic%20Formula.pdf
+                var a = orders.ElementAt(3).Value;
+                var b = orders.ElementAt(2).Value;
+                var c = orders.ElementAt(1).Value;
+                var d = orders.ElementAt(0).Value;
+                var pi = Number.Create(System.Math.PI);
+                NumberEntity kos = new NumberEntity(Number.Create(0)); ;
+                NumberEntity r = new NumberEntity(Number.Create(0));
+                NumberEntity alpha = new NumberEntity(Number.Create(0));
+                var vt = ((Number.Create(-1) * b) / Number.Create(3)).Eval();
+                var p = ((c / a) - (b * b) / (Number.Create(3) * a * a)).Eval() as NumberEntity;
+                var q = ((b * b * b / a / a / a / Number.Create(13.5)) + d / a - b * c / Number.Create(3) / a / a).Eval();
+                var del = ((q * q) / Number.Create(4) + (p * p * p) / Number.Create(27)).Eval() as NumberEntity;
+                if (del.Number.Value <= 0)
+                {
+                    if (p.Number.Value != 0)
+                    {
+                        kos = ((Number.Create(-1) * q) / Number.Create(2) / MathEntity.Sqrt(Number.Create(-1) * p * p * p / Number.Create(27))).Eval() as NumberEntity;
+                        r = MathEntity.Sqrt(Number.Create(-1) * p / Number.Create(3)).Eval() as NumberEntity;
+                    }
+
+                    if (kos.Number.Value == 1)
+                    {
+                        alpha = ((Number.Create(-1) * pi * (kos - Number.Create(1))) / Number.Create(2)).Eval() as NumberEntity;
+                    }
+                    else
+                    {
+                        alpha = MathEntity.Acos(kos).Eval() as NumberEntity;
+                    }
+
+                    var result = new List<Entity>();
+                    for (int k = 0; k <= 2; k++)
+                    {
+                        var xk = (Number.Create(2) * r * MathEntity.Cos((alpha + Number.Create(2) * Number.Create(k) * pi) / Number.Create(3)) + vt).Eval() as NumberEntity;
+                        var rec = Number.Create(System.Math.Floor(System.Math.Abs(xk.Number.Value) * 10000000000.5 / 10000000000));
+                        result.Add(rec);
+                    }
+
+                    return result.ToArray();
+                }
+                else
+                {
+                    throw new NotImplementedException();
                 }
             }
 
@@ -213,6 +288,20 @@ namespace StatisticalLearning.Entities
         {
             result = this as VariableEntity;
             return result != null;
+        }
+
+        protected void GetVariables(VariableEntity variable, ICollection<VariableEntity> result)
+        {
+            if (IsVariableEntity(out VariableEntity var) && var.Name == variable.Name)
+            {
+                result.Add(var);
+                return;
+            }
+
+            foreach(var child in Children)
+            {
+                GetVariables(variable, result);
+            }
         }
 
         private static KeyValuePair<int, Entity> ParseMonomial(Entity monomialExpr, VariableEntity variable)
@@ -273,7 +362,7 @@ namespace StatisticalLearning.Entities
             return new KeyValuePair<int, Entity>(pow, result);
         }
 
-        private static ICollection<Entity> GetSumOrSubEntities(Entity entity)
+        protected static ICollection<Entity> GetSumOrSubEntities(Entity entity)
         {
             var result = new List<Entity>();
             if (entity.IsOperatorEntity(new[] { Constants.Operators.SUM, Constants.Operators.SUB }, out OperatorEntity e))
@@ -286,7 +375,7 @@ namespace StatisticalLearning.Entities
                 {
                     for (int i = 0; i < children.Count(); i++)
                     {
-                        children[i] = Number.Create(-1) * children[i];
+                        children[i] = (Number.Create(-1) * children[i]).Eval();
                     }
                 }
 
@@ -300,7 +389,7 @@ namespace StatisticalLearning.Entities
             return result;
         }
 
-        private static ICollection<Entity> GetMulOrDivEntities(Entity entity)
+        protected static ICollection<Entity> GetMulOrDivEntities(Entity entity)
         {
             var result = new List<Entity>();
             if (entity.IsOperatorEntity(new[] { Constants.Operators.MUL, Constants.Operators.DIV }, out OperatorEntity e))
@@ -315,7 +404,6 @@ namespace StatisticalLearning.Entities
                 result.Add(entity);
             }
 
-            // result.Add(Number.Create(0));
             return result;
         }
     }

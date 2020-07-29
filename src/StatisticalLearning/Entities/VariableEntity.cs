@@ -8,6 +8,7 @@ namespace StatisticalLearning.Entities
 {
     public class VariableEntity : Entity
     {
+        private NumberEntity _number;
         public static implicit operator VariableEntity(string name) => new VariableEntity(name);
 
         public VariableEntity(string name, double nbTimes = 1, int pow = 1)
@@ -15,7 +16,10 @@ namespace StatisticalLearning.Entities
             Name = name;
             NbTimes = nbTimes;
             Pow = pow;
+            Id = Guid.NewGuid().ToString();
         }
+
+        public string Id { get; set; }
 
         public Entity Mul(NumberEntity number)
         {
@@ -25,7 +29,7 @@ namespace StatisticalLearning.Entities
                 return Number.Create(0);
             }
 
-            return new VariableEntity(Name, nbTimes);
+            return new VariableEntity(Name, nbTimes, Pow);
         }
 
         public Entity Mul(VariableEntity variable)
@@ -36,11 +40,6 @@ namespace StatisticalLearning.Entities
             }
 
             var nbTimes = NbTimes * variable.NbTimes;
-            if (NbTimes < 0 && variable.NbTimes < 0 || NbTimes > 0 && variable.NbTimes < 0)
-            {
-                nbTimes = -NbTimes;
-            }
-
             return new VariableEntity(Name, nbTimes, Pow + variable.Pow);
         }
 
@@ -48,7 +47,7 @@ namespace StatisticalLearning.Entities
         {
             if (Name != variable.Name || Pow != variable.Pow)
             {
-                return this * variable;
+                return this + variable;
             }
 
             var nbTimes = NbTimes + variable.NbTimes;
@@ -86,6 +85,11 @@ namespace StatisticalLearning.Entities
             throw new NotImplementedException();
         }
 
+        public void AssignNumber(NumberEntity number)
+        {
+            _number = number;
+        }
+
         public string Name { get; private set; }
         public double NbTimes { get; private set; }
         public int Pow { get; set; }
@@ -97,6 +101,11 @@ namespace StatisticalLearning.Entities
 
         public override Entity Eval()
         {
+            if (_number != null)
+            {
+                return (Number.Create(NbTimes) * MathEntity.Pow(_number, Number.Create(Pow))).Eval();
+            }
+
             return this;
         }
 
