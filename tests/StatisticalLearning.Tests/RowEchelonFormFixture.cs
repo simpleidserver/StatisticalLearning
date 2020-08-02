@@ -29,16 +29,25 @@ namespace StatisticalLearning.Tests
                 new Entity[] { Number.Create(12), Number.Create(-12), Number.Create(-2) },
                 new Entity[] { Number.Create(2), Number.Create(-2), Number.Create(-17) },
             });
+            var fourthMatrix = new Matrix(new Entity[][]
+            {
+                new Entity[] { Number.Create(13), Number.Create(12), Number.Create(2) },
+                new Entity[] { Number.Create(12), Number.Create(13), Number.Create(-2) },
+                new Entity[] { Number.Create(2), Number.Create(-2), Number.Create(8) }
+            });
             var rowEchelon = new RowEchelon();
             var firstResult = rowEchelon.BuildReducedRowEchelonForm(firstMatrix);
             var secondResult = rowEchelon.BuildReducedRowEchelonForm(secondMatrix);
             var thirdResult = rowEchelon.BuildReducedRowEchelonForm(thirdMatrix);
+            var fourthResult = rowEchelon.BuildReducedRowEchelonForm(fourthMatrix);
+
             Assert.NotNull(firstResult);
             Assert.NotNull(secondResult);
             Assert.NotNull(thirdResult);
             Assert.Equal("[ [ 1,0 ],[ 0,1 ] ]", firstResult.ToString());
             Assert.Equal("[ [ 1,1 ],[ 0,0 ] ]", secondResult.ToString());
             Assert.Equal("[ [ 1,-1,0 ],[ 0,0,1 ],[ 0,0,0 ] ]", thirdResult.ToString());
+            Assert.Equal("[ [ 1,0,2 ],[ 0,1,-2 ],[ 0,0,0 ] ]", fourthResult.ToString());
         }
     }
 }

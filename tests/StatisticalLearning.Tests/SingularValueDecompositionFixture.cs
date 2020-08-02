@@ -11,7 +11,7 @@ namespace StatisticalLearning.Tests
     public class SingularValueDecompositionFixture
     {
         [Fact]
-        public void When_Decompose_Matrix()
+        public void When_Decompose_SVD_Matrix()
         {
             var matrix = new Matrix(new Entity[][]
             {
@@ -19,7 +19,9 @@ namespace StatisticalLearning.Tests
                 new Entity[] { Number.Create(2), Number.Create(3), Number.Create(-2) }
             });
             var decomposition = new SingularValueDecomposition();
-            decomposition.Decompose(matrix);
+            var result = decomposition.Decompose(matrix);
+            var exceptedMatrix = result.U.Multiply(result.S).Multiply(result.V.Transpose()).Eval();
+            Assert.True(matrix.Equals(exceptedMatrix));
         }
     }
 }

@@ -14,6 +14,18 @@ namespace StatisticalLearning.Entities
 
         public Number Number { get; set; }
 
+        public override int CompareTo(object obj)
+        {
+            var source = obj as NumberEntity;
+            if (source == null)
+            {
+                return -1;
+            }
+
+            return Number.Value.CompareTo(source.Number.Value);
+        }
+
+
         public override Entity Derive()
         {
             return new NumberEntity(new Number(0));

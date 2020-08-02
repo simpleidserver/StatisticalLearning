@@ -80,6 +80,11 @@ namespace StatisticalLearning.Entities
             return null;
         }
 
+        public override int CompareTo(object obj)
+        {
+            throw new NotImplementedException();
+        }
+
         public override string ToString()
         {
             var a = Children.ElementAt(0);

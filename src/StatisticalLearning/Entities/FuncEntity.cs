@@ -18,6 +18,11 @@ namespace StatisticalLearning.Entities
         public Entity Child { get; private set; }
         public Entity SubChild { get; private set; }
 
+        public override int CompareTo(object obj)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Entity Derive()
         {
             throw new NotImplementedException();

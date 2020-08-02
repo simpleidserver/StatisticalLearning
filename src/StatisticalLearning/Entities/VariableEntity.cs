@@ -94,6 +94,11 @@ namespace StatisticalLearning.Entities
         public double NbTimes { get; private set; }
         public int Pow { get; set; }
 
+        public override int CompareTo(object obj)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Entity Derive()
         {
             return new NumberEntity(1);

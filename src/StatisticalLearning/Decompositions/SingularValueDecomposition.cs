@@ -12,26 +12,79 @@ namespace StatisticalLearning.Decompositions
     public class SingularValueDecomposition
     {
         private static string VARIABLE_NAME = "x";
-        public void Decompose(Matrix matrix)
+
+
+        public SingularValueDecompositionResult Decompose(Matrix matrix)
         {
-            // var aat = matrix.Multiply(matrix.Transpose()).Solve();
+            var aat = matrix.Multiply(matrix.Transpose()).Solve();
             var ata = matrix.Transpose().Multiply(matrix).Solve();
-            // DecomposeMatrix(aat);
-            DecomposeMatrix(ata);
+            var ataNormalizedVectors = DecomposeMatrix(ata);
+            var sum = Matrix.BuildEmptyMatrix(matrix.NbRows, matrix.NbColumns);
+            for(int i = 0; i < ataNormalizedVectors.Count; i++)
+            {
+                if (sum.NbRows <= i || sum.NbColumns <= i)
+                {
+                    break;
+                }
+
+                sum.SetValue(i, i, MathEntity.Sqrt(ataNormalizedVectors[i].EingenValue).Eval());
+            }
+
+            var v = Matrix.BuildEmptyMatrix(ataNormalizedVectors[0].Vector.Length, ataNormalizedVectors.Count);
+            var nbColumns = ataNormalizedVectors.Where(_ =>
+            {
+                if (_.EingenValue.IsNumberEntity(out NumberEntity r) && r.Number.Value == 0)
+                {
+                    return false;
+                }
+
+                return true;
+            }).Count();
+            var u = Matrix.BuildEmptyMatrix(sum.NbRows, nbColumns);
+            for (int column = 0; column < ataNormalizedVectors.Count; column++)
+            {
+                var eingenValue = (NumberEntity)ataNormalizedVectors[column].EingenValue;
+                var vector = ataNormalizedVectors[column].Vector;
+                var vectorMatrix = Matrix.BuildEmptyMatrix(vector.Length, 1);
+                for (int row = 0; row < vector.Length; row++)
+                {
+                    v.SetValue(row, column, vector[row]);
+                    vectorMatrix.SetValue(row, 0, vector[row]);
+                }
+
+                if (eingenValue.Number.Value == 0)
+                {
+                    continue;
+                }
+
+                var val = (Number.Create(1) / MathEntity.Sqrt(ataNormalizedVectors[column].EingenValue)).Eval();
+                var uColumn = matrix.Multiply(val).Multiply(vectorMatrix);
+                for(int row = 0; row < uColumn.NbRows; row++)
+                {
+                    u.SetValue(row, column, uColumn.GetValue(row, 0).Eval());
+                }
+            }
+
+            return new SingularValueDecompositionResult
+            {
+                U = u,
+                S = sum,
+                V = v
+            };
         }
 
-        private void DecomposeMatrix(Matrix matrix)
+        private static List<NormalizedVector> DecomposeMatrix(Matrix matrix)
         {
+            var result = new List<NormalizedVector>();
             var rowEchelon = new RowEchelon();
             VariableEntity lambda = "λ";
             var aatIdentity = Matrix.BuildIdentityMatrix(matrix.NbRows);
             var aatEquation = matrix - (lambda * aatIdentity);
             var aatDeterminant = aatEquation.ComputeDeterminant().Evaluate(lambda);
             var eingenvalues = aatDeterminant.Solve(lambda);
-            foreach (var eingenvalue in eingenvalues)
+            foreach (var eingenvalue in eingenvalues.OrderByDescending(_ => _))
             {
                 var vectorMatrix = matrix.Substract(Matrix.BuildIdentityMatrix(matrix.NbRows).Multiply(eingenvalue));
-                // TODO : IL FAUT RESOUDRE LA FORME REDUITE !!! => QUAND DELTA = 0
                 var reducedForm = rowEchelon.BuildReducedRowEchelonForm(vectorMatrix);
                 var arr = new Entity[reducedForm.NbRows][];
                 for (var variableIndex = 0; variableIndex < reducedForm.NbRows; variableIndex++)
@@ -42,7 +95,7 @@ namespace StatisticalLearning.Decompositions
                 var variablesMatrix = new Matrix(arr);
                 var matrixEquations = reducedForm.Multiply(variablesMatrix);
                 var dic = new Dictionary<VariableEntity, Entity>();
-                var vector = new Entity[reducedForm.NbRows][];
+                var vector = new NumberEntity[reducedForm.NbRows];
                 for (var currentRow = 0; currentRow < reducedForm.NbRows; currentRow++)
                 {
                     var equation = matrixEquations.GetRowVector(currentRow)[0];
@@ -76,29 +129,50 @@ namespace StatisticalLearning.Decompositions
                         var equation = leftPart.Value;
                         for(var index = reducedForm.NbRows -1; index > variableIndex; index--)
                         {
-                            equation.Assign(GetVariableName(index), vector[index][0] as NumberEntity);
+                            equation.Assign(GetVariableName(index), vector[index] as NumberEntity);
                         }
 
-                        var result = equation.Eval();
-                        vector[variableIndex] = new Entity[] { result };
+                        vector[variableIndex] = equation.Eval() as NumberEntity;
                     }
                     else if(!rightPart.Equals(default(KeyValuePair<VariableEntity, Entity>)) && rightPart.Key != null)
                     {
-                        vector[variableIndex] = new Entity[] { Number.Create(1) };
+                        vector[variableIndex] = (NumberEntity)Number.Create(1);
                     }
                     else
                     {
-                        vector[variableIndex] = new Entity[] { Number.Create(0) };
+                        vector[variableIndex] = (NumberEntity)Number.Create(0);
                     }
                 }
 
-                string sss = "";
+                var length = (NumberEntity)Number.Create(System.Math.Sqrt(vector.Sum(_ => System.Math.Pow(_.Number.Value, 2))));
+                var normalizedVector = new NumberEntity[reducedForm.NbRows];
+                for(int i = 0; i < reducedForm.NbRows; i++)
+                {
+                    normalizedVector[i] = (NumberEntity)(vector[i] / length).Eval();
+                }
+
+
+                result.Add(new NormalizedVector(eingenvalue, normalizedVector));
             }
+
+            return result;
         }
 
         private static string GetVariableName(int pivotIndex)
         {
             return $"{VARIABLE_NAME}{pivotIndex}";
+        }
+
+        private class NormalizedVector
+        {
+            public NormalizedVector(Entity eingenvalue, NumberEntity[] vector)
+            {
+                EingenValue = eingenvalue;
+                Vector = vector;
+            }
+
+            public Entity EingenValue { get; set; }
+            public NumberEntity[] Vector { get; set; }
         }
     }
 }

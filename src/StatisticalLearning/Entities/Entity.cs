@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace StatisticalLearning.Entities
 {
-    public abstract class Entity
+    public abstract class Entity : IComparable
     {
         public static implicit operator Entity(Number number) => new NumberEntity(number);
         public static implicit operator Entity(string name) => new VariableEntity(name);
@@ -289,6 +289,8 @@ namespace StatisticalLearning.Entities
             result = this as VariableEntity;
             return result != null;
         }
+
+        public abstract int CompareTo(object obj);
 
         protected void GetVariables(VariableEntity variable, ICollection<VariableEntity> result)
         {

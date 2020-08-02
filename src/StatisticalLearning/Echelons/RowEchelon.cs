@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 using StatisticalLearning.Entities;
 using StatisticalLearning.Math;
+using StatisticalLearning.Numeric;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -54,7 +55,16 @@ namespace StatisticalLearning.Echelons
                     var mulTimes = rowVector[pivotColumn];
                     for(int col = 0; col < result.NbColumns; col++)
                     {
-                        result.SetValue(row, col, (result.GetValue(row, col) - mulTimes * pivotRowVector[col]).Eval());
+                        Entity value = (result.GetValue(row, col) - mulTimes * pivotRowVector[col]).Eval();
+                        if (value.IsNumberEntity(out NumberEntity r))
+                        {
+                            if (System.Math.Floor(r.Number.Value) == 0)
+                            {
+                                value = Number.Create(0);
+                            }
+                        }
+
+                        result.SetValue(row, col, value);
                     }
                 }
 

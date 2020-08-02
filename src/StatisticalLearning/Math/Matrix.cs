@@ -138,6 +138,23 @@ namespace StatisticalLearning.Math
             return new Matrix(result);
         }
 
+        public static Matrix BuildEmptyMatrix(int nbRow, int nbColumn)
+        {
+            var result = new Entity[nbRow][];
+            for (var row = 0; row < nbRow; row++)
+            {
+                var rowContent = new Entity[nbColumn];
+                for (var column = 0; column < nbColumn; column++)
+                {
+                    rowContent[column] = Number.Create(0);
+                }
+
+                result[row] = rowContent;
+            }
+
+            return new Matrix(result);
+        }
+
         public Entity[][] Arr => _arr;
         public int NbRows => Arr.Length;
         public int NbColumns => Arr[0].Length;
