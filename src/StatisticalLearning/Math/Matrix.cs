@@ -10,7 +10,7 @@ namespace StatisticalLearning.Math
 {
     public class Matrix : IEquatable<Matrix>, ICloneable
     {
-        private readonly Entity[][] _arr;
+        private Entity[][] _arr;
         public static Matrix operator *(Matrix a, Matrix b) => a.Multiply(b);
         public static Matrix operator -(Matrix a, Matrix b) => a.Substract(b);
         public static Matrix operator *(Entity a, Matrix b) => b.Multiply(a);
@@ -159,6 +159,153 @@ namespace StatisticalLearning.Math
         public int NbRows => Arr.Length;
         public int NbColumns => Arr[0].Length;
 
+        public Matrix Transpose()
+        {
+            var result = new Entity[NbColumns][];
+            for (var column = 0; column < NbColumns; column++)
+            {
+                var columnVector = GetColumnVector(column);
+                result[column] = columnVector;
+            }
+
+            return new Matrix(result);
+        }
+
+        public Matrix Inverse()
+        {
+            var clone = (Matrix)Clone();
+            var identity = Matrix.BuildIdentityMatrix(NbRows);
+            var rowIndex = 0;
+            for (int pivotColumn = 0; pivotColumn < NbColumns; pivotColumn++)
+            {
+                var previousNullRow = FindPreviousNullRow(rowIndex);
+                if (previousNullRow != null)
+                {
+                    clone.SwapLines(previousNullRow.Value, rowIndex);
+                    rowIndex = previousNullRow.Value;
+                    pivotColumn--;
+                    continue;
+                }
+
+                var pivot = clone.FindPivotColumn(rowIndex, pivotColumn);
+                if (pivot == null)
+                {
+                    rowIndex++;
+                    continue;
+                }
+
+                if (pivot.Value.Key != rowIndex)
+                {
+                    clone.SwapLines(rowIndex, pivot.Value.Key);
+                }
+
+                var pivotRowVector = clone.GetRowVector(rowIndex);
+                var pivotIdentityRowVector = identity.GetRowVector(rowIndex);
+                var div = pivotRowVector[pivotColumn];
+                for (int vectorIndex = 0; vectorIndex < pivotRowVector.Length; vectorIndex++)
+                {
+                    pivotRowVector[vectorIndex] = (pivotRowVector[vectorIndex] / div).Eval();
+                    pivotIdentityRowVector[vectorIndex] = (pivotIdentityRowVector[vectorIndex] / div).Eval();
+                }
+
+                for (int row = 0; row < clone.NbRows; row++)
+                {
+                    if (row == rowIndex)
+                    {
+                        continue;
+                    }
+
+                    var rowVector = clone.GetRowVector(row);
+                    var mulTimes = rowVector[pivotColumn];
+                    for (int col = 0; col < clone.NbColumns; col++)
+                    {
+                        identity.SetValue(row, col, (identity.GetValue(row, col) - mulTimes * pivotIdentityRowVector[col]).Eval());
+                        clone.SetValue(row, col, (clone.GetValue(row, col) - mulTimes * pivotRowVector[col]).Eval());
+                    }
+                }
+
+                rowIndex++;
+            }
+
+            return identity;
+        }
+
+        public void Clean()
+        {
+            for(int row = NbRows - 1; row >= 0; row--)
+            {
+                var vector = GetRowVector(row);
+                if (vector.All(_ =>
+                {
+                    if (_.IsNumberEntity(out NumberEntity ne) && ne.Number.Value == 0)
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }))
+                {
+                    var tmp = _arr.ToList();
+                    tmp.RemoveAt(row);
+                    _arr = tmp.ToArray();
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            for(int column = NbColumns - 1; column >= 0; column--)
+            {
+                var vector = GetColumnVector(column);
+                if (vector.All(_ =>
+                {
+                    if (_.IsNumberEntity(out NumberEntity ne) && ne.Number.Value == 0)
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }))
+                {
+                    for(int row = 0; row < NbRows; row++)
+                    {
+                        var tmp = _arr[row].ToList();
+                        tmp.RemoveAt(column);
+                        _arr[row] = tmp.ToArray();
+                    }
+                }
+                else
+                {
+                    break;
+                }
+
+            }
+        }
+
+        public void SwapLines(int fRow, int sRow)
+        {
+            var fVector = GetRowVector(fRow).ToList();
+            var sVector = GetRowVector(sRow).ToList();
+            for(int column = 0; column < NbColumns; column++)
+            {
+                SetValue(fRow, column, sVector[column]);
+                SetValue(sRow, column, fVector[column]);
+            }
+        }
+
+        public Matrix Multiply(Entity[] entities)
+        {
+            var arr = new Entity[entities.Length][];
+            for(int row = 0; row < entities.Length; row++)
+            {
+                arr[row] = new Entity[] { entities[row] };
+            }
+
+            var tmp = new Matrix(arr);
+            return Multiply(tmp);
+        }
+
         public Matrix Multiply(Entity entity)
         {
             var result = new Entity[NbRows][];
@@ -176,25 +323,13 @@ namespace StatisticalLearning.Math
             return new Matrix(result);
         }
 
-        public void SwapLines(int fRow, int sRow)
-        {
-            var fVector = GetRowVector(fRow).ToList();
-            var sVector = GetRowVector(sRow).ToList();
-            for(int column = 0; column < NbColumns; column++)
-            {
-                SetValue(fRow, column, sVector[column]);
-                SetValue(sRow, column, fVector[column]);
-            }
-        }
-
-
         public Matrix Multiply(Matrix matrix)
         {
             var result = new Entity[NbRows][];
             for(var row = 0; row < NbRows; row++)
             {
                 var values = new Entity[matrix.NbColumns];
-                for(var targetColumn = 0; targetColumn < matrix.NbColumns; targetColumn++)
+                for (var targetColumn = 0; targetColumn < matrix.NbColumns; targetColumn++)
                 {
                     var targetColumnVector = matrix.GetColumnVector(targetColumn);
                     Entity value = null;
@@ -252,18 +387,6 @@ namespace StatisticalLearning.Math
             return this;
         }
 
-        public Matrix Transpose()
-        {
-            var result = new Entity[NbColumns][];
-            for(var column = 0; column < NbColumns; column++)
-            {
-                var columnVector = GetColumnVector(column);
-                result[column] = columnVector;
-            }
-
-            return new Matrix(result);
-        }
-
         public Entity GetValue(int row, int column)
         {
             return _arr[row][column];
@@ -288,6 +411,42 @@ namespace StatisticalLearning.Math
         public Entity[] GetRowVector(int row)
         {
             return _arr[row];
+        }
+        
+        public KeyValuePair<int, int>? FindPivotColumn(int rowIndex, int columnIndex)
+        {
+            for (int row = rowIndex; row < NbRows; row++)
+            {
+                var val = GetValue(row, columnIndex) as NumberEntity;
+                if (val == null || (val != null && val.Number.Value != 0))
+                {
+                    return new KeyValuePair<int, int>(row, columnIndex);
+                }
+            }
+
+            return null;
+        }
+
+        public int? FindPreviousNullRow(int currentRow)
+        {
+            for (int row = currentRow - 1; row >= 0; row--)
+            {
+                var rowVector = GetRowVector(row);
+                if (rowVector.All(_ =>
+                {
+                    if (_.IsNumberEntity(out NumberEntity numEnt))
+                    {
+                        return numEnt.Number.Value == 0;
+                    }
+
+                    return false;
+                }))
+                {
+                    return row;
+                }
+            }
+
+            return null;
         }
 
         public bool Equals(Matrix x)
@@ -320,11 +479,6 @@ namespace StatisticalLearning.Math
         public object Clone()
         {
             return new Matrix(_arr.Select(_ => _.ToArray()).ToArray());
-        }
-
-        private Entity[][]CloneArr()
-        {
-            return _arr.Select(_ => _.ToArray()).ToArray();
         }
     }
 }

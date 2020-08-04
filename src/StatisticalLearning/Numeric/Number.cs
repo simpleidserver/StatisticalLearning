@@ -6,6 +6,7 @@ namespace StatisticalLearning.Numeric
     {
         public Number(double value)
         {
+            // Value = System.Math.Round(value, 4);
             Value = value;
         }
 

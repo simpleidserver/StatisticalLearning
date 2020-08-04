@@ -3,20 +3,23 @@
 using StatisticalLearning.Entities;
 using StatisticalLearning.Math;
 using StatisticalLearning.Numeric;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace StatisticalLearning.Echelons
 {
     public class RowEchelon
     {
+        /// <summary>
+        /// https://en.wikipedia.org/wiki/Row_echelon_form
+        /// </summary>
+        /// <param name="matrix"></param>
+        /// <returns></returns>
         public Matrix BuildReducedRowEchelonForm(Matrix matrix)
         {
             var result = (Matrix)matrix.Clone();
             var rowIndex = 0;
             for(int pivotColumn = 0; pivotColumn < result.NbColumns; pivotColumn++)
             {
-                var previousNullRow = FindPreviousNullRow(result, rowIndex);
+                var previousNullRow = result.FindPreviousNullRow(rowIndex);
                 if (previousNullRow != null)
                 {
                     result.SwapLines(previousNullRow.Value, rowIndex);
@@ -25,7 +28,7 @@ namespace StatisticalLearning.Echelons
                     continue;
                 }
 
-                var pivot = FindPivotColumn(result, rowIndex, pivotColumn);
+                var pivot = result.FindPivotColumn(rowIndex, pivotColumn);
                 if(pivot == null)
                 {
                     rowIndex++;
@@ -58,7 +61,7 @@ namespace StatisticalLearning.Echelons
                         Entity value = (result.GetValue(row, col) - mulTimes * pivotRowVector[col]).Eval();
                         if (value.IsNumberEntity(out NumberEntity r))
                         {
-                            if (System.Math.Floor(r.Number.Value) == 0)
+                            if (System.Math.Round(r.Number.Value, 4) == 0 || System.Math.Round(-r.Number.Value, 4) == 0)
                             {
                                 value = Number.Create(0);
                             }
@@ -72,41 +75,6 @@ namespace StatisticalLearning.Echelons
             }
 
             return result;
-        }
-
-        private static KeyValuePair<int, int>? FindPivotColumn(Matrix matrix, int rowIndex, int columnIndex)
-        {
-            for(int row = rowIndex; row < matrix.NbRows; row++)
-            {
-                var val = matrix.GetValue(row, columnIndex) as NumberEntity;
-                if (val == null || (val != null && val.Number.Value != 0))
-                {
-                    return new KeyValuePair<int, int>(row, columnIndex);
-                }
-            }
-
-            return null;
-        }
-
-        private static int? FindPreviousNullRow(Matrix matrix, int currentRow)
-        {
-            for (int row = currentRow - 1; row >= 0; row--)
-            {
-                var rowVector = matrix.GetRowVector(row);
-                if (rowVector.All(_ =>
-                {
-                    if (_.IsNumberEntity(out NumberEntity numEnt))
-                    {
-                        return numEnt.Number.Value == 0;
-                    }
-
-                    return false;
-                })) {
-                    return row;
-                }
-            }
-
-            return null;
         }
     }
 }

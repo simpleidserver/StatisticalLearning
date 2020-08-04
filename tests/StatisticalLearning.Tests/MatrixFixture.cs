@@ -111,5 +111,39 @@ namespace StatisticalLearning.Tests
             Assert.Equal(40, firstDeterminant.Number.Value);
             Assert.Equal(0, secondDeterminant.Number.Value);
         }
+
+        [Fact]
+        public void When_Inverse_Matrix()
+        {
+            var firstMatrix = new Matrix(new Entity[][]
+            {
+                new Entity[] { Number.Create(5), Number.Create(10) },
+                new Entity[] { Number.Create(3), Number.Create(8) }
+            });
+            var secondMatrix = new Matrix(new Entity[][]
+            {
+                new Entity[] { Number.Create(5), Number.Create(4), Number.Create(2) },
+                new Entity[] { Number.Create(1), Number.Create(8), Number.Create(2) },
+                new Entity[] { Number.Create(3), Number.Create(1), Number.Create(2) }
+            });
+            var firstResult = firstMatrix.Inverse();
+            var secondResult = secondMatrix.Inverse();
+            Assert.Equal("[ [ 1,0 ],[ 0,1 ] ]", firstMatrix.Multiply(firstResult).Eval().ToString());
+            Assert.Equal("[ [ 0,35,-0,15,-0,2 ],[ 0,1,0,1,-0,2 ],[ -0,575,0,175,0,9 ] ]", secondResult.ToString());
+        }
+
+        [Fact]
+        public void When_Clean_Matrix()
+        {
+            var firstMatrix = new Matrix(new Entity[][]
+            {
+                new Entity[] { Number.Create(5), Number.Create(10), Number.Create(0), Number.Create(0) },
+                new Entity[] { Number.Create(3), Number.Create(8), Number.Create(0), Number.Create(0) },
+                new Entity[] { Number.Create(0), Number.Create(0), Number.Create(0), Number.Create(0) },
+                new Entity[] { Number.Create(0), Number.Create(0), Number.Create(0), Number.Create(0) }
+            });
+            firstMatrix.Clean();
+            Assert.Equal("[ [ 5,10 ],[ 3,8 ] ]", firstMatrix.ToString());
+        }
     }
 }

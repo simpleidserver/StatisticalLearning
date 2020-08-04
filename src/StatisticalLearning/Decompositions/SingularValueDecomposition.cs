@@ -65,6 +65,9 @@ namespace StatisticalLearning.Decompositions
                 }
             }
 
+            u.Clean();
+            sum.Clean();
+            v.Clean();
             return new SingularValueDecompositionResult
             {
                 U = u,
