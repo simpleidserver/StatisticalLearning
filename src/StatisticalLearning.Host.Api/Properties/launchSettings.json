@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "StatisticalLearning.Api.Host": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "http://localhost:8000/"
+    }
+  }
+}

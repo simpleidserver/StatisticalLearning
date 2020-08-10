@@ -1,0 +1,29 @@
+﻿$mat-statiticalearning-primary: ( 
+    main: #485f62, 
+    lighter: #c8cfd0, 
+    darker: #304346, 
+    200: #485f62,
+    contrast : ( 
+        main: $light-primary-text, 
+        lighter: $dark-primary-text, 
+        darker: $light-primary-text
+    ) 
+);
+
+$mat-statiticalearning-accent: (
+  main: #52c4af,
+  lighter: #cbede7,
+  darker: #38af96,
+  200: #52c4af,
+  contrast : (
+    main: $dark-primary-text,
+    lighter: $dark-primary-text,
+    darker: $dark-primary-text,
+  )
+);
+
+$my-statiticalearning-theme-primary: mat-palette($mat-statiticalearning-primary, main, lighter, darker);
+$my-statiticalearning-theme-accent: mat-palette($mat-statiticalearning-accent, main, lighter, darker);
+$my-statiticalearning-theme-warn: mat-palette($mat-deep-orange);
+
+$my-statiticalearning-theme: mat-light-theme($my-statiticalearning-theme-primary, $my-statiticalearning-theme-accent, $my-statiticalearning-theme-warn );

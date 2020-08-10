@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TypeScriptToolsVersion>3.6</TypeScriptToolsVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="angularApp\app\message\**" />
+    <Content Remove="angularApp\app\message\**" />
+    <EmbeddedResource Remove="angularApp\app\message\**" />
+    <None Remove="angularApp\app\message\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="angularApp\app\stores\statistic\models\coefficient.result.ts" />
+    <None Remove="angularApp\app\stores\statistic\models\linear-regression.result.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="angularApp\app\stores\statistic\models\coefficient.result.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="angularApp\app\stores\statistic\models\linear-regression.result.ts" />
+  </ItemGroup>
+</Project>

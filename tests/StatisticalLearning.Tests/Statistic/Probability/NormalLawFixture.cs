@@ -11,8 +11,8 @@ namespace StatisticalLearning.Tests.Statistic.Probability
         public void When_Compute_Probabiliy_NormalLaw()
         {
             var normalLaw = new NormalLaw();
-            var firstProbability = normalLaw.ComputeProbability(0, 1, 1.56); // <= 1.56
-            var secondProbability = normalLaw.ComputeProbability(0, 1, 0.5); // <= 0.5
+            var firstProbability = normalLaw.ComputeLowerCumulative(0, 1, 1.56); // <= 1.56
+            var secondProbability = normalLaw.ComputeLowerCumulative(0, 1, 0.5); // <= 0.5
             Assert.Equal(0.94064850654741039, firstProbability);
             Assert.Equal(0.691662613143159, secondProbability);
         }

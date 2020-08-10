@@ -1,0 +1,18 @@
+@mixin app-theme($theme) {
+    $primary: map-get($theme, primary);
+    $accent: map-get($theme, accent);
+    $background: map-get($theme, background);
+
+    .active, .is-active {
+        background: mat-color($background, 'hover');
+    }
+
+    .breadcrumb {
+        background-color: mat-color($accent, 200);
+        color: white;
+    }
+}
+
+@mixin component-themes($theme) {
+    @include app-theme($theme);
+}

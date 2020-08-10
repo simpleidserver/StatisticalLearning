@@ -11,10 +11,38 @@ namespace StatisticalLearning.Math.MatrixDecompositions
     {
         private static string VARIABLE_NAME = "x";
 
+        public SingularValueDecompositionResult Decompose(double[] inputs)
+        {
+            var arr = new double[inputs.Length][];
+            for (int i = 0; i < inputs.Length; i++)
+            {
+                arr[i] = new double[] { 1, inputs[i] };
+            }
+
+            return Decompose(new Matrix(arr));
+        }
+
+        public SingularValueDecompositionResult Decompose(double[][] inputs)
+        {
+            var arr = new double[inputs.Length][];
+            for (int i = 0; i < inputs.Length; i++)
+            {
+                var inputRow = inputs[i];
+                var newRow = new double[1 + inputRow.Length];
+                newRow[0] = 1;
+                for(int column = 0; column < inputRow.Length; column++)
+                {
+                    newRow[1 + column] = inputRow[column];
+                }
+
+                arr[i] = newRow;
+            }
+
+            return Decompose(new Matrix(arr));
+        }
 
         public SingularValueDecompositionResult Decompose(Matrix matrix)
         {
-            var aat = matrix.Multiply(matrix.Transpose()).Solve();
             var ata = matrix.Transpose().Multiply(matrix).Solve();
             var ataNormalizedVectors = DecomposeMatrix(ata);
             var sum = Matrix.BuildEmptyMatrix(matrix.NbRows, matrix.NbColumns);
@@ -63,9 +91,6 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                 }
             }
 
-            u.Clean();
-            sum.Clean();
-            v.Clean();
             return new SingularValueDecompositionResult
             {
                 U = u,
@@ -82,6 +107,7 @@ namespace StatisticalLearning.Math.MatrixDecompositions
             var aatIdentity = Matrix.BuildIdentityMatrix(matrix.NbRows);
             var aatEquation = matrix - (lambda * aatIdentity);
             var aatDeterminant = aatEquation.ComputeDeterminant().Evaluate(lambda);
+            // Problème résolution du determinant !!!
             var eingenvalues = aatDeterminant.Solve(lambda);
             foreach (var eingenvalue in eingenvalues.OrderByDescending(_ => _))
             {

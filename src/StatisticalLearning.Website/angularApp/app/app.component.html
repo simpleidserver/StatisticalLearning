@@ -1,0 +1,20 @@
+﻿<ng-container>
+    <mat-toolbar class="header-toolbar" color="primary">
+        <a class="no-style" [routerLink]="['/home']"></a>
+        <button mat-icon-button (click)="sidenav.toggle()">
+            <mat-icon>menu</mat-icon>
+        </button>
+        <h1>StatiticalLearning</h1>
+        <span class="spacer"></span>
+    </mat-toolbar>
+    <mat-sidenav-container class="sidenav-container">
+        <mat-sidenav class="sidenav" #sidenav mode="side" opened [fixedInViewport]="false" [fixedTopGap]="0" [fixedBottomGap]="0">
+            <mat-nav-list *ngIf="isConnected">
+                <a mat-list-item [routerLink]="['/home']" [routerLinkActive]="['is-active']">{{ 'home' | translate }}</a>
+            </mat-nav-list>
+        </mat-sidenav>
+        <mat-sidenav-content>
+            <router-outlet></router-outlet>
+        </mat-sidenav-content>
+    </mat-sidenav-container>
+</ng-container>

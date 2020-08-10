@@ -236,8 +236,7 @@ namespace StatisticalLearning.Math.Entities
                     for (int k = 0; k <= 2; k++)
                     {
                         var xk = (Number.Create(2) * r * MathEntity.Cos((alpha + Number.Create(2) * Number.Create(k) * pi) / Number.Create(3)) + vt).Eval() as NumberEntity;
-                        var rec = Number.Create(System.Math.Floor(System.Math.Abs(xk.Number.Value) * 10000000000.5 / 10000000000));
-                        result.Add(rec);
+                        result.Add(xk);
                     }
 
                     return result.ToArray();

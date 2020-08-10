@@ -15,6 +15,11 @@ namespace StatisticalLearning.Math
         public static Matrix operator *(Entity a, Matrix b) => b.Multiply(a);
         public static Matrix operator *(Matrix a, Entity b) => a.Multiply(b);
 
+        public Matrix(double[][] arr)
+        {
+            _arr = arr.Select(_ => _.Select(__ => (Entity)Number.Create(__)).ToArray()).ToArray();
+        }
+
         public Matrix(Entity[][] arr)
         {
             _arr = arr;
@@ -155,6 +160,7 @@ namespace StatisticalLearning.Math
         }
 
         public Entity[][] Arr => _arr;
+        public double[][] DoubleArr => _arr.Select(_ => _.Select(__ => (__ as NumberEntity).Number.Value).ToArray()).ToArray();
         public int NbRows => Arr.Length;
         public int NbColumns => Arr[0].Length;
 
@@ -165,6 +171,25 @@ namespace StatisticalLearning.Math
             {
                 var columnVector = GetColumnVector(column);
                 result[column] = columnVector;
+            }
+
+            return new Matrix(result);
+        }
+
+        public Matrix AddColumn(Entity entity)
+        {
+            var result = new Entity[NbRows][];
+            for (int i = 0; i < NbRows; i++)
+            {
+                var inputRow = GetRowVector(i);
+                var newRow = new Entity[1 + inputRow.Length];
+                newRow[0] = entity;
+                for (int column = 0; column < inputRow.Length; column++)
+                {
+                    newRow[1 + column] = inputRow[column];
+                }
+
+                result[i] = newRow;
             }
 
             return new Matrix(result);
@@ -229,59 +254,6 @@ namespace StatisticalLearning.Math
             return identity;
         }
 
-        public void Clean()
-        {
-            for(int row = NbRows - 1; row >= 0; row--)
-            {
-                var vector = GetRowVector(row);
-                if (vector.All(_ =>
-                {
-                    if (_.IsNumberEntity(out NumberEntity ne) && ne.Number.Value == 0)
-                    {
-                        return true;
-                    }
-
-                    return false;
-                }))
-                {
-                    var tmp = _arr.ToList();
-                    tmp.RemoveAt(row);
-                    _arr = tmp.ToArray();
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            for(int column = NbColumns - 1; column >= 0; column--)
-            {
-                var vector = GetColumnVector(column);
-                if (vector.All(_ =>
-                {
-                    if (_.IsNumberEntity(out NumberEntity ne) && ne.Number.Value == 0)
-                    {
-                        return true;
-                    }
-
-                    return false;
-                }))
-                {
-                    for(int row = 0; row < NbRows; row++)
-                    {
-                        var tmp = _arr[row].ToList();
-                        tmp.RemoveAt(column);
-                        _arr[row] = tmp.ToArray();
-                    }
-                }
-                else
-                {
-                    break;
-                }
-
-            }
-        }
-
         public void SwapLines(int fRow, int sRow)
         {
             var fVector = GetRowVector(fRow).ToList();
@@ -335,7 +307,16 @@ namespace StatisticalLearning.Math
                     for (var column = 0; column < NbColumns; column++)
                     {
                         var source = GetValue(row, column);
-                        var target = targetColumnVector[column];
+                        Entity target;
+                        if (column >= targetColumnVector.Length)
+                        {
+                            target = Number.Create(0);
+                        }
+                        else
+                        {
+                            target = targetColumnVector[column];
+                        }
+
                         if (value == null)
                         {
                             value = source * target;

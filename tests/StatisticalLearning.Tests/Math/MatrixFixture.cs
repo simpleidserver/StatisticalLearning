@@ -130,19 +130,5 @@ namespace StatisticalLearning.Tests.Math
             Assert.Equal("[ [ 1,0 ],[ 0,1 ] ]", firstMatrix.Multiply(firstResult).Eval().ToString());
             Assert.Equal("[ [ 0,35,-0,15,-0,2 ],[ 0,1,0,1,-0,2 ],[ -0,575,0,175,0,9 ] ]", secondResult.ToString());
         }
-
-        [Fact]
-        public void When_Clean_Matrix()
-        {
-            var firstMatrix = new Matrix(new Entity[][]
-            {
-                new Entity[] { Number.Create(5), Number.Create(10), Number.Create(0), Number.Create(0) },
-                new Entity[] { Number.Create(3), Number.Create(8), Number.Create(0), Number.Create(0) },
-                new Entity[] { Number.Create(0), Number.Create(0), Number.Create(0), Number.Create(0) },
-                new Entity[] { Number.Create(0), Number.Create(0), Number.Create(0), Number.Create(0) }
-            });
-            firstMatrix.Clean();
-            Assert.Equal("[ [ 5,10 ],[ 3,8 ] ]", firstMatrix.ToString());
-        }
     }
 }

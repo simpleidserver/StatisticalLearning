@@ -1,6 +1,7 @@
 ﻿// Copyright (c) SimpleIdServer. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 using StatisticalLearning.Statistic.Regression;
+using System;
 using System.Data;
 using System.IO;
 using System.Linq;
@@ -17,6 +18,8 @@ namespace StatisticalLearning.ConsoleClient
             var rows = advertisingData.Rows;            
             var simpleLinearRegression = new SimpleLinearRegression();
             var result = simpleLinearRegression.Regress("TV", "sales", advertisingData);
+            Console.WriteLine("Press a key to quit the application");
+            Console.ReadKey();
         }
 
         private static DataTable Extract(string csvFile)

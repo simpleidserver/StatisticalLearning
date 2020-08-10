@@ -20,7 +20,13 @@ namespace StatisticalLearning.Statistic.Probability.Repartition
             _a = -100;
         }
 
-        public double ComputeProbability(double average, double standardDeviation, double value)
+        public double ComputeUpperCumulative(double average, double standardDeviation, double value)
+        {
+            var lower = ComputeLowerCumulative(average, standardDeviation, value);
+            return 1 - lower;
+        }
+
+        public double ComputeLowerCumulative(double average, double standardDeviation, double value)
         {
             VariableEntity µ = _avgVariableName;
             VariableEntity σ = _standardDeviationVariableName;
