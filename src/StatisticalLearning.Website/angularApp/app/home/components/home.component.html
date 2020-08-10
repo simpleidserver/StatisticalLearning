@@ -3,15 +3,11 @@
         <div class="mat-h1">{{ "home" | translate }}</div>
     </div>
 </div>
-<div fxLayout="row">
+<div fxLayout="row" fxLayoutGap="10px">
     <div fxFlex="50%">
-        <mat-card>
-            <mat-card-header>
-                <mat-card-title>Simple linear regression</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-                <div id="chartContainer" style="height: 300px; width: 100%;"></div>
-            </mat-card-content>
-        </mat-card>
+        <simplelinearegression-component></simplelinearegression-component>
+    </div>
+    <div fxFlex="50%">
+        <multiplelinearegression-component></multiplelinearegression-component>
     </div>
 </div>

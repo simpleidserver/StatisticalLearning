@@ -9,7 +9,7 @@ import { LinearRegressionResult } from "../models/linear-regression.result";
 export class StatisticService {
     constructor(private http: HttpClient) { }
 
-    computeSimpleLinearRegression(inputs : Number[], outputs : Number[]): Observable<LinearRegressionResult> {
+    computeSimpleLinearRegression(inputs : Number[][], outputs : Number[]): Observable<LinearRegressionResult> {
         const request = JSON.stringify({ inputs: inputs, outputs: outputs});
         let headers = new HttpHeaders();
         let targetUrl = process.env.API_URL + "/statistic/regressions/linear";

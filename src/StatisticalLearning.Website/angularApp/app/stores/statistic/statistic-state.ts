@@ -1,5 +1,9 @@
-﻿import { LinearRegressionResult } from './models/simplelinear-regression.result';
+﻿import { LinearRegressionResult } from './models/linear-regression.result';
 
 export interface SimpleLinearRegressionState {
+    content: LinearRegressionResult
+}
+
+export interface MultipleLinearRegressionState {
     content: LinearRegressionResult
 }

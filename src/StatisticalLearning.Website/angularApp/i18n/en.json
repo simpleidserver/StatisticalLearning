@@ -1,3 +1,17 @@
 {
-
+  "accuracy": "Accuracy",
+  "coefficients": "Coefficients",
+  "equation": "Equation : {{equation}}",
+  "name": "Name",
+  "standard-error": "Estimate standard error",
+  "t-statistic": "T value",
+  "p-value": "Pr(>|t|)",
+  "r-square": "R square",
+  "residual-standard-sum-of-squares": "Residual standard sum of squares",
+  "residual-standard-error": "Residual standard error",
+  "simple-linear-regression": "Simple linear regression",
+  "languages": "Languages",
+  "english": "English",
+  "home": "Home",
+  "multiple-linear-regression": "Multiple linear regression"
 }

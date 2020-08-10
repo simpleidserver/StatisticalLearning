@@ -1,0 +1,49 @@
+﻿<h1 mat-dialog-title>{{ "info" | translate }}</h1>
+<div mat-dialog-content>
+    <mat-tab-group>
+        <mat-tab label="{{ 'accuracy' | translate }}">
+            <!-- R Square -->
+            <mat-form-field class="full-width">
+                <mat-label>{{ "r-square" | translate }}</mat-label>
+                <input matInput value="{{ data.rSquare }}" disabled />
+            </mat-form-field>
+            <!-- Residual standard sum of squares -->
+            <mat-form-field class="full-width">
+                <mat-label>{{ "residual-standard-sum-of-squares" | translate }}</mat-label>
+                <input matInput value="{{ data.residualSumOfSquares }}" disabled />
+            </mat-form-field>
+            <!-- Residual standard error -->
+            <mat-form-field class="full-width">
+                <mat-label>{{ "residual-standard-error" | translate }}</mat-label>
+                <input matInput value="{{ data.residualStandardError }}" disabled />
+            </mat-form-field>
+        </mat-tab>
+        <mat-tab label="{{ 'coefficients' | translate }}">
+            <h5>{{ 'equation' | translate  : { equation : equation } }}</h5>
+            <table mat-table [dataSource]="coefficients" class="full-width">
+                <!-- Name -->
+                <ng-container matColumnDef="name">
+                    <th mat-header-cell *matHeaderCellDef>{{ 'name' | translate }}</th>
+                    <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+                </ng-container>
+                <!-- Standard error -->
+                <ng-container matColumnDef="standardError">
+                    <th mat-header-cell *matHeaderCellDef>{{ 'standard-error' | translate }}</th>
+                    <td mat-cell *matCellDef="let element"> {{element.standardError}} </td>
+                </ng-container>
+                <!-- Standard error -->
+                <ng-container matColumnDef="tStatistic">
+                    <th mat-header-cell *matHeaderCellDef>{{ 't-statistic' | translate }}</th>
+                    <td mat-cell *matCellDef="let element"> {{element.tStatistic}} </td>
+                </ng-container>
+                <!-- PValue -->
+                <ng-container matColumnDef="pValue">
+                    <th mat-header-cell *matHeaderCellDef>{{ 'p-value' | translate }}</th>
+                    <td mat-cell *matCellDef="let element"> {{element.pValue}} </td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+        </mat-tab>
+    </mat-tab-group>
+</div>

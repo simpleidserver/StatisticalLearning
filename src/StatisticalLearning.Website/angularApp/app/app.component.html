@@ -6,6 +6,10 @@
         </button>
         <h1>StatiticalLearning</h1>
         <span class="spacer"></span>
+        <button mat-button [matMenuTriggerFor]="languages">{{ "languages" | translate }}</button>
+        <mat-menu #languages="matMenu">
+            <button mat-menu-item (click)="chooseLanguage('en')" [class.active]="activeLanguage === 'en'">{{ "english" | translate }}</button>
+        </mat-menu>
     </mat-toolbar>
     <mat-sidenav-container class="sidenav-container">
         <mat-sidenav class="sidenav" #sidenav mode="side" opened [fixedInViewport]="false" [fixedTopGap]="0" [fixedBottomGap]="0">
