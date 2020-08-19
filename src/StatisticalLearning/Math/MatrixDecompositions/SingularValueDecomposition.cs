@@ -99,6 +99,344 @@ namespace StatisticalLearning.Math.MatrixDecompositions
             };
         }
 
+        public SingularValueDecompositionResult DecomposeGolubReinsch(Matrix a)
+        {
+            // http://people.duke.edu/~hpgavin/SystemID/References/Golub+Reinsch-NM-1970.pdf
+            int maxIteration = 50;
+            double s = 0.0, h = 0.0, f = 0.0, c = 0.0, z = 0.0, y = 0.0;
+            int l = 0;
+            var eps = double.Epsilon;
+            var tol = 1.11022302462516E-49;
+            int m = a.NbRows;
+            int n = a.NbColumns;
+            var u = (Matrix)a.Clone();
+            double[] e = new double[n];
+            double[] q = new double[n];
+            double[][] v = new double[n][];
+            for(int k = 0; k < n; k++)
+            {
+                v[k] = new double[n];
+            }
+
+            double g = 0.0, x = 0.0;
+            for (int i = 0; i < n; i++)
+            {
+                s = 0.0;
+                e[i] = g;
+                l = i + 1;
+                for (int j = i; j < m; j++)
+                {
+                    s += System.Math.Pow(u.GetNumberValue(j, i), 2);
+                }
+
+                if (s <= tol)
+                {
+                    g = 0.0;
+                }
+                else
+                {
+                    f = u.GetNumberValue(i, i);
+                    if (f < 0.0)
+                    {
+                        g = System.Math.Sqrt(s);
+                    }
+                    else
+                    {
+                        g = -System.Math.Sqrt(s);
+                    }
+
+                    h = f * g - s;
+                    u.SetValue(i, i, f - g);
+                    for (int j = l; j < n; j++)
+                    {
+                        s = 0.0;
+                        for (int k = i; k < m; k++)
+                        {
+                            s += u.GetNumberValue(k, i) * u.GetNumberValue(k, j);
+                        }
+                        f = s / h;
+                        for (int k = i; k < m; k++)
+                        {
+                            u.SetValue(k, j, u.GetNumberValue(k, j) + f * u.GetNumberValue(k, i));
+                        }
+                    }
+                }
+
+                q[i] = g;
+                s = 0.0;
+                for (int j = l; j < n; j++)
+                {
+                    s = s + u.GetNumberValue(i, j) * u.GetNumberValue(i, j);
+                }
+
+                if (s <= tol)
+                {
+                    g = 0.0;
+                }
+                else
+                {
+                    f = u.GetNumberValue(i, i + 1);
+                    if (f < 0.0)
+                    {
+                        g = System.Math.Sqrt(s);
+                    }
+                    else
+                    {
+                        g = -System.Math.Sqrt(s);
+                    }
+
+                    h = f * g - s;
+                    u.SetValue(i, i + 1, f - g);
+                    for (int j = l; j < n; j++)
+                    {
+                        e[j] = u.GetNumberValue(i, j) / h;
+                    }
+
+                    for (int j = l; j < m; j++)
+                    {
+                        s = 0.0;
+                        for (int k = l; k < n; k++)
+                        {
+                            s = s + (u.GetNumberValue(j, k) * u.GetNumberValue(i, k));
+                        }
+
+                        for (int k = l; k < n; k++)
+                        {
+                            u.SetValue(j, k, u.GetNumberValue(j, k) + (s * e[k]));
+                        }
+                    }
+                }
+
+                y = System.Math.Abs(q[i]) + System.Math.Abs(e[i]);
+                if (y > x)
+                {
+                    x = y;
+                }
+            }
+
+            // accumulation of right hand transformations.
+            for (int i = n - 1; i >= 0; i--)
+            {
+                if (g != 0.0)
+                {
+                    h = g * u.GetNumberValue(i, i + 1);
+                    for(int j = l; j < n; j++)
+                    {
+                        v[j][i] = u.GetNumberValue(i, j) / h;
+                    }
+
+                    for(int j = l; j < n; j++)
+                    {
+                        s = 0.0;
+                        for (int k = l; k < n; k++)
+                        {
+                            s += u.GetNumberValue(i, k) * v[k][j];
+                        }
+
+                        for(int k = l; k < n; k++)
+                        {
+                            v[k][j] += (s * v[k][i]);
+                        }
+                    }
+                }
+
+                for(int j = l; j < n; j++)
+                {
+                    v[i][j] = 0.0;
+                    v[j][i] = 0.0;
+                }
+
+                v[i][i] = 1.0;
+                g = e[i];
+                l = i;
+            }
+
+            // accumulation of the left hand transformations.
+            for(int i = n - 1; i >= 0; i--)
+            {
+                l = i + 1;
+                g = q[i];
+                for(int j = l; j < n; j++)
+                {
+                    u.SetValue(i, j, 0.0);
+                }
+
+                if (g != 0.0)
+                {
+                    h = u.GetNumberValue(i, i) * g;
+                    for(int j = l; j < n; j++)
+                    {
+                        s = 0.0;
+                        for(int k = l; k < m; k++)
+                        {
+                            s += (u.GetNumberValue(k, i) * u.GetNumberValue(k, j));
+                        }
+
+                        f = s / h;
+                        for(int k = i; k < m; k++)
+                        {
+                            u.SetValue(k, j, u.GetNumberValue(k, j) + f * u.GetNumberValue(k, i));
+                        }
+                    }
+
+                    for(int j = i; j < m; j++)
+                    {
+                        u.SetValue(j, i, u.GetNumberValue(j, i) / g);
+                    }
+                }
+                else
+                {
+                    for(int j = i; j < m; j++)
+                    {
+                        u.SetValue(j, i, 0.0);
+                    }
+                }
+
+                u.SetValue(i, i, u.GetNumberValue(i, i) + 1.0);
+            }
+
+            eps = eps * x;
+            // diagonalization of the bidiagonal form.
+            for (int k = n - 1; k >= 0; k--)
+            {
+                for(int iteration = 0; iteration < maxIteration; iteration++)
+                {
+                    bool testFConvergence = false;
+                    // test f splitting.
+                    for (l = k; l >= 0; l--)
+                    {
+                        if (System.Math.Abs(e[l]) <= eps)
+                        {
+                            testFConvergence = true;
+                            break;
+                        }
+
+                        if(System.Math.Abs(q[l - 1]) <= eps)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (!testFConvergence)
+                    {
+                        c = 0.0;
+                        s = 0.0;
+                        var l1 = l - 1;
+                        for(int i = l; i < k + 1; i++)
+                        {
+                            f = s * e[i];
+                            e[i] = c * e[i];
+                            if (System.Math.Abs(f) <= eps)
+                            {
+                                break;
+                            }
+
+                            g = q[i];
+                            h = Hypotenuse(f, g);
+                            q[i] = h;
+                            c = g / h;
+                            s = -f / h;
+                            for (int j = 0; j < m; j++)
+                            {
+                                y = u.GetNumberValue(j, l1);
+                                z = u.GetNumberValue(j, i);
+                                u.SetValue(j, l1, y * c + z * s);
+                                u.SetValue(j, i, -y * s + z * c);
+                            }
+                        }
+                    }
+
+                    // test f convergence.
+                    z = q[k];
+                    if (l == k)
+                    {
+                        if (z < 0.0)
+                        {
+                            q[k] = -z;
+                            for(int j = 0; j < n; j++)
+                            {
+                                v[j][k] = -v[j][k];
+                            }
+                        }
+
+                        break;
+                    }
+
+                    if (iteration >= maxIteration - 1) 
+                    {
+                        break;
+                    }
+
+                    // shift from bottom 2x2 minor.
+                    x = q[l];
+                    y = q[k - 1];
+                    g = e[k - 1];
+                    h = e[k];
+                    f = ((y - z) * (y + z) + (g - h) * (g + h)) / (2.0 * h * y);
+                    g = Hypotenuse(f, 1.0);
+                    if (f < 0)
+                    {
+                        f = ((x - z) * (x + z) + h * (y / (f - g) - h)) / x;
+                    }
+                    else
+                    {
+                        f = ((x - z) * (x + z) + h * (y / (f + g) - h)) / x;
+                    }
+
+                    // next QR transformation.
+                    c = 1.0;
+                    s = 1.0;
+                    for(int i = l + 1; i < k + 1; i++)
+                    {
+                        g = e[i];
+                        y = q[i];
+                        h = s * g;
+                        g = c * g;
+                        z = Hypotenuse(f, h);
+                        e[i - 1] = z;
+                        c = f / z;
+                        s = h / z;
+                        f = x * c + g * s;
+                        g = -x * s + g * c;
+                        h = y * s;
+                        y = y * c;
+                        for(int j = 0; j < n; j++)
+                        {
+                            x = v[j][i - 1];
+                            z = v[j][i];
+                            v[j][i - 1] = x * c + z * s;
+                            v[j][i] = -x * s + z * c;
+                        }
+
+                        z = Hypotenuse(f, h);
+                        q[i - 1] = z;
+                        c = f / z;
+                        s = h / z;
+                        f = c * g + s * y;
+                        x = -s * g + c * y;
+                        for(int j = 0; j < m; j++)
+                        {
+                            y = u.GetNumberValue(j, i - 1);
+                            z = u.GetNumberValue(j, i);
+                            u.SetValue(j, i - 1, y * c + z * s);
+                            u.SetValue(j, i, -y * s + z * c);
+                        }
+                    }
+
+                    e[l] = 0.0;
+                    e[k] = f;
+                    q[k] = x;
+                }
+            }
+
+            return new SingularValueDecompositionResult
+            {
+                S = Matrix.BuildIdentityMatrix(q),
+                U = u,
+                V = new Matrix(v)
+            };
+        }
+
         private static List<NormalizedVector> DecomposeMatrix(Matrix matrix)
         {
             var result = new List<NormalizedVector>();
@@ -107,7 +445,6 @@ namespace StatisticalLearning.Math.MatrixDecompositions
             var aatIdentity = Matrix.BuildIdentityMatrix(matrix.NbRows);
             var aatEquation = matrix - (lambda * aatIdentity);
             var aatDeterminant = aatEquation.ComputeDeterminant().Evaluate(lambda);
-            // Problème résolution du determinant !!!
             var eingenvalues = aatDeterminant.Solve(lambda);
             foreach (var eingenvalue in eingenvalues.OrderByDescending(_ => _))
             {
@@ -188,6 +525,26 @@ namespace StatisticalLearning.Math.MatrixDecompositions
         private static string GetVariableName(int pivotIndex)
         {
             return $"{VARIABLE_NAME}{pivotIndex}";
+        }
+
+        private static double Hypotenuse(double a, double b)
+        {
+            double r = 0.0;
+            double absA = System.Math.Abs(a);
+            double absB = System.Math.Abs(b);
+
+            if (absA > absB)
+            {
+                r = b / a;
+                r = absA * System.Math.Sqrt(1 + r * r);
+            }
+            else if (b != 0)
+            {
+                r = a / b;
+                r = absB * System.Math.Sqrt(1 + r * r);
+            }
+
+            return r;
         }
 
         private class NormalizedVector

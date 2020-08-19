@@ -1,0 +1,14 @@
+﻿<mat-card>
+    <mat-card-header>
+        <mat-card-title>{{ "principal-component-analysis" | translate }}</mat-card-title>
+        <mat-card-actions>
+            <button mat-icon-button (click)="displayInfo()">
+                <mat-icon>info</mat-icon>
+            </button>
+        </mat-card-actions>
+    </mat-card-header>
+    <mat-card-content>
+        <div id="pcaCorrelationChartContainer" style="height: 300px; width: 100%;"></div>
+        <div id="pcaIndivChartContainer" style="height: 300px; width: 100%;"></div>
+    </mat-card-content>
+</mat-card>

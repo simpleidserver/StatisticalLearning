@@ -50,5 +50,19 @@ namespace StatisticalLearning.Tests.Math.MatrixDecompositions
             Assert.Equal("[ [ 0,999999999999946,80 ],[ 0,999999999999959,60 ],[ 0,999999999999993,10 ],[ 0,999999999999986,20 ],[ 0,999999999999979,30 ] ]", thirdExceptedMatrix.ToString());
             Assert.Equal("[ [ 0,999999999997021,2,7499999999998,5,30000000000065 ],[ 1,00000000000246,2,4999999999998,5,29999999999963 ],[ 1,00000000000246,2,4999999999998,5,29999999999963 ] ]", fourthExceptedMatrix.ToString());
         }
+
+        [Fact]
+        public void When_Use_Golub_Reinsch_To_Calculate_SVD()
+        {
+            var matrix = new Matrix(new double[][]
+            {
+                new double[] { 4, 0 },
+                new double[] { 3, -5 }
+            });
+            var decomposition = new SingularValueDecomposition();
+            var result = decomposition.DecomposeGolubReinsch(matrix);
+            var exceptedMatrix = result.U.Multiply(result.S).Multiply(result.V.Transpose()).Eval();
+            Assert.Equal("[ [ 4,-6,66133814775094E-16 ],[ 3,-5 ] ]", exceptedMatrix.ToString());
+        }
     }
 }

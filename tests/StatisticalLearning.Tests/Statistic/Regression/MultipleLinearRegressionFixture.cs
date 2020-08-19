@@ -1,5 +1,6 @@
 ﻿// Copyright (c) SimpleIdServer. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
+using StatisticalLearning.Math;
 using StatisticalLearning.Statistic.Regression;
 using Xunit;
 
@@ -66,6 +67,7 @@ namespace StatisticalLearning.Tests.Statistic.Regression
                 704,
                 719
             };
+            var m1 = new Matrix(inputs);
             var multipleLinearRegression = new MultipleLinearRegression();
             var result = multipleLinearRegression.Regress(inputs, outputs);
             Assert.Equal(1798.4039777942753, result.Intercept.Value);

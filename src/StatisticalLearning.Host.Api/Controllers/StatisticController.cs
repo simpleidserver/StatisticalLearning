@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using StatisticalLearning.Api.Host.DTOs.Requests;
 using StatisticalLearning.Api.Host.DTOs.Responses;
 using StatisticalLearning.Api.Host.Extensions;
+using StatisticalLearning.Statistic.Analysis;
 using StatisticalLearning.Statistic.Probability.Repartition;
 using StatisticalLearning.Statistic.Regression;
+using System.Linq;
 
 namespace StatisticalLearning.Api.Host.Controllers
 {
@@ -18,6 +20,20 @@ namespace StatisticalLearning.Api.Host.Controllers
             var simpleLinearRegression = new MultipleLinearRegression();
             var result = simpleLinearRegression.Regress(request.Inputs, request.Outputs);
             return new OkObjectResult(result.ToDto());
+        }
+
+        [HttpPost("analysis/pca")]
+        public IActionResult NaivePrincipalComponentAnalysis([FromBody] GetPrincipalComponentAnalysisRequest request)
+        {
+            var analysis = new PrincipalComponentAnalysis();
+            var pcs = analysis.Compute(request.Matrix, true);
+            var transformed = analysis.Transform(request.Matrix, true);
+            var result = new PrincipalComponentAnalysisResponse
+            {
+                PrincipalComponents = pcs.Select(_ => _.ToDto()).ToArray(),
+                Transformed = transformed.DoubleArr
+            };
+            return new OkObjectResult(result);
         }
 
         [HttpPost("probability/normalaw/lower")]

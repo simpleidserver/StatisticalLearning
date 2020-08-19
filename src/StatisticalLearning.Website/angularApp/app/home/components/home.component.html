@@ -3,11 +3,18 @@
         <div class="mat-h1">{{ "home" | translate }}</div>
     </div>
 </div>
-<div fxLayout="row" fxLayoutGap="10px">
-    <div fxFlex="50%">
-        <simplelinearegression-component></simplelinearegression-component>
+<div fxLayout="column" fxLayoutGap="10px">
+    <div fxLayout="row" fxLayoutGap="10px">
+        <div fxFlex="50%">
+            <simplelinearegression-component></simplelinearegression-component>
+        </div>
+        <div fxFlex="50%">
+            <multiplelinearegression-component></multiplelinearegression-component>
+        </div>
     </div>
-    <div fxFlex="50%">
-        <multiplelinearegression-component></multiplelinearegression-component>
+    <div fxLayout="row" fxLayoutGap="10px">
+        <div fxFlex="50%">
+            <principalcomponentanalysis-component></principalcomponentanalysis-component>
+        </div>
     </div>
 </div>

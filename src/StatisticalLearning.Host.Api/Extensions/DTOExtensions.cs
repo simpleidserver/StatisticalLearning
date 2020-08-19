@@ -1,6 +1,7 @@
 ﻿// Copyright (c) SimpleIdServer. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 using StatisticalLearning.Math.MatrixDecompositions;
+using StatisticalLearning.Statistic.Analysis;
 using StatisticalLearning.Statistic.Regression;
 using System.Linq;
 
@@ -8,6 +9,18 @@ namespace StatisticalLearning.Api.Host.Extensions
 {
     public static class DTOExtensions
     {
+        public static DTOs.Responses.PrincipalComponentResponse ToDto(this PrincipalComponent pc)
+        {
+            return new DTOs.Responses.PrincipalComponentResponse
+            {
+                Cumulative = pc.Cumulative,
+                EigenValue = pc.EigenValue,
+                Eigenvector = pc.Eigenvector,
+                Proportion =  pc.Proportion,
+                SingularValue = pc.SingularValue
+            };
+        }
+
         public static DTOs.Responses.LinearRegressionResponse ToDto(this LinearRegressionResult result)
         {
             return new DTOs.Responses.LinearRegressionResponse

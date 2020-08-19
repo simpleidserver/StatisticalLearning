@@ -1,5 +1,6 @@
 import { Action } from '@ngrx/store';
 import { LinearRegressionResult } from './models/linear-regression.result';
+import { PrincipalComponentAnalysisResult } from './models/pca.result';
 
 export enum ActionTypes {
     COMPUTE_SIMPLE_LINEAR_REGRESSION = "[Statistic] COMPUTE_SIMPLE_LINEAR_REGRESSION",
@@ -7,7 +8,10 @@ export enum ActionTypes {
     ERROR_LOAD_SIMPLE_LINEAR_REGRESSION = "[Statistic] ERROR_LOAD_SIMPLE_LINEAR_REGRESSION",
     COMPUTE_MULTIPLE_LINEAR_REGRESSION = "[Statistic] COMPUTE_MULTIPLE_LINEAR_REGRESSION",
     MULTIPLE_LINEAR_REGRESSION_RESULT_LOADED = "[Statistic] MULTIPLE_LINEAR_REGRESSION_RESULT_LOADED",
-    ERROR_LOAD_MULTIPLE_LINEAR_REGRESSION = "[Statistic] ERROR_LOAD_MULTIPLE_LINEAR_REGRESSION"
+    ERROR_LOAD_MULTIPLE_LINEAR_REGRESSION = "[Statistic] ERROR_LOAD_MULTIPLE_LINEAR_REGRESSION",
+    COMPUTE_PRINCIPAL_COMPONENT_ANALYSIS = "[Statistic] COMPUTE_PRINCIPAL_COMPONENT_ANALYSIS",
+    PRINCIPAL_COMPONENT_LOADED = "[Statistic] PRINCIPAL_COMPONENT_LOADED",
+    ERROR_LOAD_PRINCIPAL_COMPONENT_ANALYSIS = "[Statistic] ERROR_LOAD_PRINCIPAL_COMPONENT_ANALYSIS"
 }
 
 export class ComputeSimpleLinearRegression implements Action {
@@ -30,8 +34,20 @@ export class MultipleLinearRegressionLoaded implements Action {
     constructor(public multipleLinearRegressionResult: LinearRegressionResult) { }
 }
 
+export class ComputePrincipalComponentAnalysis implements Action {
+    readonly type = ActionTypes.COMPUTE_PRINCIPAL_COMPONENT_ANALYSIS;
+    constructor(public inputs: number[][]) { }
+}
+
+export class PrincipalComponentLoaded implements Action {
+    readonly type = ActionTypes.PRINCIPAL_COMPONENT_LOADED;
+    constructor(public principalComponentAnalysis: PrincipalComponentAnalysisResult) { }
+}
+
 export type ActionsUnion =
     ComputeSimpleLinearRegression |
     SimpleLinearRegressionLoaded | 
     ComputeMultipleLinearRegression |
-    MultipleLinearRegressionLoaded;
+    MultipleLinearRegressionLoaded |
+    ComputePrincipalComponentAnalysis |
+    PrincipalComponentLoaded;

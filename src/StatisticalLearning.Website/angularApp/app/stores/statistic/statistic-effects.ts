@@ -3,7 +3,7 @@ import { Actions, Effect, ofType } from '@ngrx/effects';
 import { of } from 'rxjs';
 import { catchError, map, mergeMap } from 'rxjs/operators';
 import { StatisticService } from './services/statistic-service';
-import { ActionTypes, ComputeMultipleLinearRegression, ComputeSimpleLinearRegression } from './statistic-actions';
+import { ActionTypes, ComputeMultipleLinearRegression, ComputeSimpleLinearRegression, ComputePrincipalComponentAnalysis } from './statistic-actions';
 
 @Injectable()
 export class StatisticEffects {
@@ -39,6 +39,20 @@ export class StatisticEffects {
                     .pipe(
                         map(multipleLinearRegressionResult => { return { type: ActionTypes.MULTIPLE_LINEAR_REGRESSION_RESULT_LOADED, multipleLinearRegressionResult: multipleLinearRegressionResult }; }),
                         catchError(() => of({ type: ActionTypes.ERROR_LOAD_MULTIPLE_LINEAR_REGRESSION }))
+                    );
+            }
+            )
+    );
+
+    @Effect()
+    computePrincipalComponentAnalysis$ = this.actions$
+        .pipe(
+            ofType(ActionTypes.COMPUTE_PRINCIPAL_COMPONENT_ANALYSIS),
+            mergeMap((evt: ComputePrincipalComponentAnalysis) => {
+                return this.statisticService.computePrincipalComponentAnalysis(evt.inputs)
+                    .pipe(
+                        map(principalComponentAnalysis => { return { type: ActionTypes.PRINCIPAL_COMPONENT_LOADED, principalComponentAnalysis: principalComponentAnalysis }; }),
+                        catchError(() => of({ type: ActionTypes.ERROR_LOAD_PRINCIPAL_COMPONENT_ANALYSIS }))
                     );
             }
             )

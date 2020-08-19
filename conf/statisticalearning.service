@@ -1,0 +1,13 @@
+[Unit]
+Description=Statistical Learning server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/dotnet /home/ftpuser/src/build/results/services/StatisticalLearningWebsite/StatisticalLearning.Website.dll --pathBase=/statiticalearning --server.urls="http://*:8000"
+KillMode=process
+TimeoutStopSec=5s
+Restart=always
+WorkingDirectory=/home/ftpuser/src/build/results/services/StatisticalLearningApi
+
+[Install]
+WantedBy=multi-user.target
