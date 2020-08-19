@@ -9,10 +9,10 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 const FilterWarningsPlugin = require('webpack-filter-warnings-plugin');
 
 const ENV = process.env.ENV = process.env.NODE_ENV = 'azure';
-const API_URL = process.env.API_URL = "http://simpleidserver.northeurope.cloudapp.azure.com/statiticalearningapi";
+const API_URL = process.env.API_URL = "http://simpleidserver.northeurope.cloudapp.azure.com/statisticalearningapi";
 const OPENID_URL = process.env.OPENID_URL = "http://simpleidserver.northeurope.cloudapp.azure.com/openid";
-const REDIRECT_URL = process.env.REDIRECT_URL = "http://simpleidserver.northeurope.cloudapp.azure.com/statiticalearning";
-const BASE_URL = process.env.BASE_URL || '/statiticalearning/';
+const REDIRECT_URL = process.env.REDIRECT_URL = "http://simpleidserver.northeurope.cloudapp.azure.com/statisticalearning";
+const BASE_URL = process.env.BASE_URL || '/statisticalearning/';
 
 const ROOT = path.resolve(__dirname, '..');
 

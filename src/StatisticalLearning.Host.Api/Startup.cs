@@ -32,15 +32,23 @@ namespace StatisticalLearning.Api.Host
 
         public void Configure(IApplicationBuilder app)
         {
+            var pathBase = string.Empty;
             if (_configuration.GetChildren().Any(i => i.Key == "pathBase"))
             {
-                app.UsePathBase(_configuration["pathBase"]);
+                pathBase = _configuration["pathBase"];
+                app.UsePathBase(pathBase);
             }
 
             app.UseSwagger(); 
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                var edp = "/swagger/v1/swagger.json";
+                if (!string.IsNullOrWhiteSpace(pathBase))
+                {
+                    edp = $"{pathBase}{edp}";
+                }
+
+                c.SwaggerEndpoint(edp, "My API V1");
             });
             app.UseStaticFiles();
             app.UseForwardedHeaders();

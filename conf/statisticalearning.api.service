@@ -3,7 +3,7 @@ Description=Statistical Learning API server
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/dotnet /home/ftpuser/src/build/results/services/StatisticalLearningApi/StatisticalLearning.Host.Api.dll --pathBase=/statiticalearningapi --server.urls="http://*:8001"
+ExecStart=/usr/bin/dotnet /home/ftpuser/src/build/results/services/StatisticalLearningApi/StatisticalLearning.Api.Host.dll --pathBase=/statisticalearningapi --server.urls="http://*:8001"
 KillMode=process
 TimeoutStopSec=5s
 Restart=always

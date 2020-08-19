@@ -7,7 +7,7 @@ ExecStart=/usr/bin/dotnet /home/ftpuser/src/build/results/services/StatisticalLe
 KillMode=process
 TimeoutStopSec=5s
 Restart=always
-WorkingDirectory=/home/ftpuser/src/build/results/services/StatisticalLearningApi
+WorkingDirectory=/home/ftpuser/src/build/results/services/StatisticalLearningWebsite
 
 [Install]
 WantedBy=multi-user.target
