@@ -10,11 +10,11 @@ namespace StatisticalLearning.Tests.Statistic.Analysis
     public class PrincipalComponentAnalysisFixture
     {
         [Fact]
-        public void When_Compute_PCA()
+        public void When_Calculate_PCA()
         {
             // http://www.sccg.sk/~haladova/principal_components.pdf
             // http://factominer.free.fr/factomethods/analyse-en-composantes-principales.html
-            var matrix = new Matrix(new double[][]
+            Matrix matrix = new double[][]
             {
                 new double[] { 11.04,7.58,14.83,2.07,49.81,14.69,43.75,5.02,63.19,291.70 },
                 new double[] { 10.76,7.40,14.26,1.86,49.37,14.05,50.72,4.92,60.15,301.50 },
@@ -57,12 +57,11 @@ namespace StatisticalLearning.Tests.Statistic.Analysis
                 new double[] { 10.86,7.07,14.81,1.94,51.16,14.96,46.07,4.70,53.05,317.00 },
                 new double[] { 11.23,6.99,13.53,1.85,50.95,15.09,43.01,4.50,60.00,281.70 },
                 new double[] { 11.36,6.68,14.92,1.94,53.20,15.39,48.66,4.40,58.62,296.12 }
-            });
-            var analysis = new PrincipalComponentAnalysis();
-            var principalComponents = analysis.Compute(matrix, true);
-            var transformed = analysis.Transform(matrix, true);
-            Assert.Equal(2, principalComponents.Count());
-            Assert.Equal(3.2719055379656874, principalComponents.First().EigenValue);
+            };
+            var analysis = new PrincipalComponentAnalysis(true, 2);
+            var result = analysis.Compute(matrix);
+            Assert.Equal(2, result.PrincipalComponents.Count());
+            Assert.Equal(3.27, System.Math.Round(result.PrincipalComponents.First().EigenValue.GetNumber(), 2));
         }
     }
 }

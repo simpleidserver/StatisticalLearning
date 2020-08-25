@@ -1,6 +1,7 @@
 ﻿// Copyright (c) SimpleIdServer. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 using StatisticalLearning.Math;
+using StatisticalLearning.Math.Entities;
 using StatisticalLearning.Math.MatrixDecompositions;
 using System.Linq;
 
@@ -8,33 +9,44 @@ namespace StatisticalLearning.Statistic.Analysis
 {
     public class PrincipalComponentAnalysis
     {
+        private bool _isStandardize = false;
+        private int _maxNbComponents;
+
+        public PrincipalComponentAnalysis()
+        {
+            _isStandardize = false;
+            _maxNbComponents = 2;
+        }
+
+        public PrincipalComponentAnalysis(bool isStandardize, int maxNbComponents)
+        {
+            _isStandardize = isStandardize;
+            _maxNbComponents = maxNbComponents;
+        }
+
         public PrincipalComponent[] PrincipalComponents { get; private set; }
         public Matrix ComponentVectors { get; private set; }
 
-        public PrincipalComponent[] Compute(double[][] arr, bool isStandardize = false, int maxNbComponents = 2)
-        {
-            return Compute(new Matrix(arr), isStandardize, maxNbComponents);
-        }
-
-        public PrincipalComponent[] Compute(Matrix matrix, bool isStandardize = false, int maxNbComponents = 2)
+        public PrincipalComponentAnalysis Compute(Matrix matrix)
         {
             int nbRows = matrix.NbRows;
-            if (isStandardize)
+            if (_isStandardize)
             {
-                matrix = matrix.ComputeMeanCenteredReducedMatrix();
+                matrix = matrix.CenteredMeanReducedMatrix();
             }
             else
             {
-                matrix = matrix.ComputeMeanCenteredMatrix();
+                matrix = matrix.CenteredMeanMatrix();
             }
 
+            matrix.Evaluate();
             var singularValueDecomposition = new SingularValueDecomposition();
-            var svd = singularValueDecomposition.DecomposeGolubReinsch(matrix);
-            var singularValues = svd.S.GetDiagonalNumbers();
+            var svd = singularValueDecomposition.DecomposeGolubReinsch(matrix).Result;
+            var singularValues = svd.S.GetDiagonal();
             ComponentVectors = svd.V.Transpose();
             singularValues = singularValues.ToList().OrderByDescending(_ => _).ToArray();
-            var eigenValues = new double[singularValues.Length];
-            var sum = 0.0;
+            var eigenValues = new Entity[singularValues.Length];
+            Entity sum = 0.0;
             for (int i = 0; i < singularValues.Length; i++)
             {
                 eigenValues[i] = singularValues[i] * singularValues[i] / (nbRows - 1);
@@ -42,7 +54,7 @@ namespace StatisticalLearning.Statistic.Analysis
             }
 
             sum = 1 / sum;
-            var min = System.Math.Min(maxNbComponents, singularValues.Length);
+            var min = System.Math.Min(_maxNbComponents, singularValues.Length);
             PrincipalComponents = new PrincipalComponent[min];
             for (int i = 0; i < min; i++)
             {
@@ -55,34 +67,28 @@ namespace StatisticalLearning.Statistic.Analysis
 
                 var record = new PrincipalComponent 
                 { 
-                    Cumulative = componentCumulative, 
-                    Proportion = componentProportion,
-                    SingularValue = singularValues[i],
-                    EigenValue = eigenValues[i],
-                    Eigenvector = ComponentVectors.GetNumberRowVector(i)
+                    Cumulative = componentCumulative.Eval(), 
+                    Proportion = componentProportion.Eval(),
+                    SingularValue = singularValues[i].Eval(),
+                    EigenValue = eigenValues[i].Eval(),
+                    Eigenvector = ComponentVectors.GetRowVector(i)
                 };
                 PrincipalComponents[i] = record;
             }
 
-            return PrincipalComponents;
+            return this;
         }
 
-        public Matrix Transform(double[][] arr, bool isStandardize = false)
-        {
-            return Transform(new Matrix(arr), isStandardize);
-        }
-
-        public Matrix Transform(Matrix input, bool isStandardize = false)
+        public Matrix Transform(Matrix input)
         {
             int nbRows = input.NbRows;
-            int nbColumns = input.NbColumns;
-            if (isStandardize)
+            if (_isStandardize)
             {
-                input = input.ComputeMeanCenteredReducedMatrix();
+                input = input.CenteredMeanReducedMatrix();
             }
             else
             {
-                input = input.ComputeMeanCenteredMatrix();
+                input = input.CenteredMeanMatrix();
             }
 
             var min = PrincipalComponents.Length;
@@ -96,12 +102,12 @@ namespace StatisticalLearning.Statistic.Analysis
                     for(int j = 0; j < principalComponent.Eigenvector.Length; j++)
                     {
                         var vector = principalComponent.Eigenvector[j];
-                        result[i][pci] += input.GetNumberValue(i, j) * vector;
+                        result[i][pci] += input.GetValue(i, j).Eval().GetNumber() * vector.GetNumber();
                     }
                 }
             }
 
-            return new Matrix(result);
+            return result;
         }
     }
 }

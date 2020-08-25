@@ -1,7 +1,7 @@
 ﻿// Copyright (c) SimpleIdServer. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
-using StatisticalLearning.Math;
 using StatisticalLearning.Statistic.Regression;
+using System.Linq;
 using Xunit;
 
 namespace StatisticalLearning.Tests.Statistic.Regression
@@ -67,10 +67,19 @@ namespace StatisticalLearning.Tests.Statistic.Regression
                 704,
                 719
             };
-            var m1 = new Matrix(inputs);
             var multipleLinearRegression = new MultipleLinearRegression();
             var result = multipleLinearRegression.Regress(inputs, outputs);
-            Assert.Equal(1798.4039777942753, result.Intercept.Value);
+            Assert.Equal(1798.4, System.Math.Round(result.LinearRegression.Intercept.Value, 1));
+            Assert.Equal(345.5, System.Math.Round(result.LinearRegression.SlopeLst.ElementAt(0).Value, 1));
+            Assert.Equal(-250.1, System.Math.Round(result.LinearRegression.SlopeLst.ElementAt(1).Value, 1));
+
+            Assert.Equal(899.2, System.Math.Round(result.LinearRegression.Intercept.StandardError, 1));
+            Assert.Equal(111.4, System.Math.Round(result.LinearRegression.SlopeLst.ElementAt(0).StandardError, 1));
+            Assert.Equal(117.9, System.Math.Round(result.LinearRegression.SlopeLst.ElementAt(1).StandardError, 1));
+
+            Assert.Equal(2, System.Math.Round(result.LinearRegression.Intercept.TStatistic, 1));
+            Assert.Equal(3.103, System.Math.Round(result.LinearRegression.SlopeLst.ElementAt(0).TStatistic, 3));
+            Assert.Equal(-2.121, System.Math.Round(result.LinearRegression.SlopeLst.ElementAt(1).TStatistic, 3));
         }
     }
 }

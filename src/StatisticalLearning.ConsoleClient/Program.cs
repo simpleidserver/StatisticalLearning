@@ -15,7 +15,6 @@ namespace StatisticalLearning.ConsoleClient
         static void Main(string[] args)
         {
             var advertisingData = Extract(Path.Combine(Directory.GetCurrentDirectory(), "DataSets", "Advertising.csv"));
-            var rows = advertisingData.Rows;            
             var simpleLinearRegression = new SimpleLinearRegression();
             var result = simpleLinearRegression.Regress("TV", "sales", advertisingData);
             Console.WriteLine("Press a key to quit the application");

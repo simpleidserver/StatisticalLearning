@@ -16,8 +16,8 @@ namespace StatisticalLearning.Api.Host.Controllers
         public IActionResult DecomposeSVD([FromBody] double[][] matrix)
         {
             var decomposition = new SingularValueDecomposition();
-            var result = decomposition.Decompose(new Math.Matrix(matrix));
-            return new OkObjectResult(result.ToDto());
+            var result = decomposition.DecomposeGolubReinsch(matrix);
+            return new OkObjectResult(result.Result.ToDto());
         }
 
         [HttpPost("functions/beta")]

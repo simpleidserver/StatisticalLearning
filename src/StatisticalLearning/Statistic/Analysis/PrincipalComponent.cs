@@ -1,11 +1,16 @@
-﻿namespace StatisticalLearning.Statistic.Analysis
+﻿// Copyright (c) SimpleIdServer. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
+using StatisticalLearning.Math;
+using StatisticalLearning.Math.Entities;
+
+namespace StatisticalLearning.Statistic.Analysis
 {
     public class PrincipalComponent
     {
-        public double Cumulative { get; set; }
-        public double Proportion { get; set; }
-        public double SingularValue { get; set; }
-        public double EigenValue { get; set; }
-        public double[] Eigenvector { get; set; }
+        public Entity Cumulative { get; set; }
+        public Entity Proportion { get; set; }
+        public Entity SingularValue { get; set; }
+        public Entity EigenValue { get; set; }
+        public Vector Eigenvector { get; set; }
     }
 }

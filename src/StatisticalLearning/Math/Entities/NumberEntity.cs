@@ -5,6 +5,73 @@ namespace StatisticalLearning.Math.Entities
 {
     public class NumberEntity : Entity
     {
+        public static bool operator ==(NumberEntity a, NumberEntity b)
+        {
+            if (object.ReferenceEquals(a, null) && object.ReferenceEquals(b, null))
+            {
+                return true;
+            }
+
+            if (object.ReferenceEquals(a, null) || object.ReferenceEquals(b, null))
+            {
+                return false;
+            }
+
+            return a.Number.Value == b.Number.Value;
+        }
+        public static bool operator !=(NumberEntity a, NumberEntity b)
+        {
+            if (object.ReferenceEquals(a, null) && object.ReferenceEquals(b, null))
+            {
+                return false;
+            }
+
+            if (object.ReferenceEquals(a, null) || object.ReferenceEquals(b, null))
+            {
+                return true;
+            }
+
+            return a.Number.Value != b.Number.Value;
+        }
+        public static bool operator <=(NumberEntity a, NumberEntity b)
+        {
+            if (a == null || b == null)
+            {
+                return false;
+            }
+
+            return a.Number.Value <= b.Number.Value;
+        }
+
+        public static bool operator <(NumberEntity a, NumberEntity b)
+        {
+            if (a == null || b == null)
+            {
+                return false;
+            }
+
+            return a.Number.Value <= b.Number.Value;
+        }
+
+        public static bool operator >=(NumberEntity a, NumberEntity b)
+        {
+            if (a == null || b == null)
+            {
+                return false;
+            }
+
+            return a.Number.Value >= b.Number.Value;
+        }
+
+        public static bool operator >(NumberEntity a, NumberEntity b)
+        {
+            if (a == null || b == null)
+            {
+                return false;
+            }
+
+            return a.Number.Value > b.Number.Value;
+        }
 
         public NumberEntity(Number number)
         {

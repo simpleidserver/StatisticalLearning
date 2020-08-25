@@ -19,9 +19,13 @@ namespace StatisticalLearning.Math.Functions
              1.5056327351493116e-7
         };
 
+        /// <summary>
+        /// https://en.wikipedia.org/wiki/Lanczos_approximation
+        /// </summary>
+        /// <param name="a"></param>
+        /// <returns></returns>
         public double EvaluateWithLanczos(double a)
         {
-            // https://en.wikipedia.org/wiki/Lanczos_approximation
             if (a < 0.5)
             {
                 return System.Math.PI / (System.Math.Sin(System.Math.PI * a) * EvaluateWithLanczos(1 - a));

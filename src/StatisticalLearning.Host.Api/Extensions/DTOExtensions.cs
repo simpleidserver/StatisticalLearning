@@ -13,11 +13,11 @@ namespace StatisticalLearning.Api.Host.Extensions
         {
             return new DTOs.Responses.PrincipalComponentResponse
             {
-                Cumulative = pc.Cumulative,
-                EigenValue = pc.EigenValue,
-                Eigenvector = pc.Eigenvector,
-                Proportion =  pc.Proportion,
-                SingularValue = pc.SingularValue
+                Cumulative = pc.Cumulative.GetNumber(),
+                EigenValue = pc.EigenValue.GetNumber(),
+                Eigenvector = pc.Eigenvector.GetNumbers(),
+                Proportion =  pc.Proportion.GetNumber(),
+                SingularValue = pc.SingularValue.GetNumber()
             };
         }
 
@@ -51,9 +51,9 @@ namespace StatisticalLearning.Api.Host.Extensions
         {
             return new DTOs.Responses.SingularValueDecompositionResponse
             {
-                U = result.U.DoubleArr,
-                S = result.S.DoubleArr,
-                V = result.V.DoubleArr
+                U = result.U.DoubleValues,
+                S = result.S.DoubleValues,
+                V = result.V.DoubleValues
             };
         }
     }

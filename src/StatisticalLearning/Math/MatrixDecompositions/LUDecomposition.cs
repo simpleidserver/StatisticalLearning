@@ -1,6 +1,5 @@
 ﻿// Copyright (c) SimpleIdServer. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
-
 namespace StatisticalLearning.Math.MatrixDecompositions
 {
     public class LUDecomposition
@@ -14,6 +13,11 @@ namespace StatisticalLearning.Math.MatrixDecompositions
         public Matrix L { get; private set; }
         public Matrix U { get; private set; }
 
+        /// <summary>
+        /// https://fr.wikipedia.org/wiki/D%C3%A9composition_LU
+        /// </summary>
+        /// <param name="matrix"></param>
+        /// <returns></returns>
         public static LUDecomposition Decompose(Matrix matrix)
         {
             var lMatrix = Matrix.BuildIdentityMatrix(matrix.NbRows);
@@ -36,8 +40,8 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                 }
             }
 
-            lMatrix.Solve();
-            uMatrix.Solve();
+            lMatrix.Evaluate();
+            uMatrix.Evaluate();
             return new LUDecomposition(lMatrix, uMatrix);
         }
     }

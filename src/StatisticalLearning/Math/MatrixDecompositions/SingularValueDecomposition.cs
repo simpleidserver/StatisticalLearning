@@ -1,7 +1,6 @@
 ﻿// Copyright (c) SimpleIdServer. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 using StatisticalLearning.Math.Entities;
-using StatisticalLearning.Math.MatrixEchelons;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,39 +10,16 @@ namespace StatisticalLearning.Math.MatrixDecompositions
     {
         private static string VARIABLE_NAME = "x";
 
-        public SingularValueDecompositionResult Decompose(double[] inputs)
+        public SingularValueDecomposition()
         {
-            var arr = new double[inputs.Length][];
-            for (int i = 0; i < inputs.Length; i++)
-            {
-                arr[i] = new double[] { 1, inputs[i] };
-            }
 
-            return Decompose(new Matrix(arr));
         }
 
-        public SingularValueDecompositionResult Decompose(double[][] inputs)
+        public SingularValueDecompositionResult Result { get; private set; }
+
+        public SingularValueDecomposition DecomposeNaive(Matrix matrix)
         {
-            var arr = new double[inputs.Length][];
-            for (int i = 0; i < inputs.Length; i++)
-            {
-                var inputRow = inputs[i];
-                var newRow = new double[1 + inputRow.Length];
-                newRow[0] = 1;
-                for(int column = 0; column < inputRow.Length; column++)
-                {
-                    newRow[1 + column] = inputRow[column];
-                }
-
-                arr[i] = newRow;
-            }
-
-            return Decompose(new Matrix(arr));
-        }
-
-        public SingularValueDecompositionResult Decompose(Matrix matrix)
-        {
-            var ata = matrix.Transpose().Multiply(matrix).Solve();
+            var ata = matrix.Transpose().Multiply(matrix).Evaluate();
             var ataNormalizedVectors = DecomposeMatrix(ata);
             var sum = Matrix.BuildEmptyMatrix(matrix.NbRows, matrix.NbColumns);
             for(int i = 0; i < ataNormalizedVectors.Count; i++)
@@ -59,7 +35,7 @@ namespace StatisticalLearning.Math.MatrixDecompositions
             var v = Matrix.BuildEmptyMatrix(ataNormalizedVectors[0].Vector.Length, ataNormalizedVectors.Count);
             var nbColumns = ataNormalizedVectors.Where(_ =>
             {
-                if (_.EingenValue.IsNumberEntity(out NumberEntity r) && r.Number.Value == 0)
+                if (_.EingenValue == 0)
                 {
                     return false;
                 }
@@ -91,15 +67,33 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                 }
             }
 
-            return new SingularValueDecompositionResult
+            Result = new SingularValueDecompositionResult
             {
                 U = u,
                 S = sum,
                 V = v
             };
+            return this;
         }
 
-        public SingularValueDecompositionResult DecomposeGolubReinsch(Matrix a)
+        /// <summary>
+        /// Use Gobul Reinsch to decompose the matrix.
+        /// http://people.duke.edu/~hpgavin/SystemID/References/Golub+Reinsch-NM-1970.pdf
+        /// </summary>
+        /// <param name="a"></param>
+        /// <returns></returns>
+        public SingularValueDecomposition DecomposeGolubReinsch(Matrix a)
+        {
+            return DecomposeGolubReinsch(a.DoubleValues);
+        }
+
+        /// <summary>
+        /// Use Gobul Reinsch to decompose the matrix.
+        /// http://people.duke.edu/~hpgavin/SystemID/References/Golub+Reinsch-NM-1970.pdf
+        /// </summary>
+        /// <param name="a"></param>
+        /// <returns></returns>
+        public SingularValueDecomposition DecomposeGolubReinsch(double[][] a)
         {
             // http://people.duke.edu/~hpgavin/SystemID/References/Golub+Reinsch-NM-1970.pdf
             int maxIteration = 50;
@@ -107,13 +101,13 @@ namespace StatisticalLearning.Math.MatrixDecompositions
             int l = 0;
             var eps = double.Epsilon;
             var tol = 1.11022302462516E-49;
-            int m = a.NbRows;
-            int n = a.NbColumns;
-            var u = (Matrix)a.Clone();
+            int m = a.Length;
+            int n = a[0].Length;
+            var u = a.ToArray();
             double[] e = new double[n];
             double[] q = new double[n];
             double[][] v = new double[n][];
-            for(int k = 0; k < n; k++)
+            for (int k = 0; k < n; k++)
             {
                 v[k] = new double[n];
             }
@@ -126,7 +120,7 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                 l = i + 1;
                 for (int j = i; j < m; j++)
                 {
-                    s += System.Math.Pow(u.GetNumberValue(j, i), 2);
+                    s += System.Math.Pow(u[j][i], 2);
                 }
 
                 if (s <= tol)
@@ -135,7 +129,7 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                 }
                 else
                 {
-                    f = u.GetNumberValue(i, i);
+                    f = u[i][i];
                     if (f < 0.0)
                     {
                         g = System.Math.Sqrt(s);
@@ -146,18 +140,18 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                     }
 
                     h = f * g - s;
-                    u.SetValue(i, i, f - g);
+                    u[i][i] = f - g;
                     for (int j = l; j < n; j++)
                     {
                         s = 0.0;
                         for (int k = i; k < m; k++)
                         {
-                            s += u.GetNumberValue(k, i) * u.GetNumberValue(k, j);
+                            s += u[k][i] * u[k][j];
                         }
                         f = s / h;
                         for (int k = i; k < m; k++)
                         {
-                            u.SetValue(k, j, u.GetNumberValue(k, j) + f * u.GetNumberValue(k, i));
+                            u[k][j] = u[k][j] + f * u[k][i];
                         }
                     }
                 }
@@ -166,7 +160,7 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                 s = 0.0;
                 for (int j = l; j < n; j++)
                 {
-                    s = s + u.GetNumberValue(i, j) * u.GetNumberValue(i, j);
+                    s = s + u[i][j] * u[i][j];
                 }
 
                 if (s <= tol)
@@ -175,7 +169,7 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                 }
                 else
                 {
-                    f = u.GetNumberValue(i, i + 1);
+                    f = u[i][i + 1];
                     if (f < 0.0)
                     {
                         g = System.Math.Sqrt(s);
@@ -186,10 +180,10 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                     }
 
                     h = f * g - s;
-                    u.SetValue(i, i + 1, f - g);
+                    u[i][i + 1] = f - g;
                     for (int j = l; j < n; j++)
                     {
-                        e[j] = u.GetNumberValue(i, j) / h;
+                        e[j] = u[i][j] / h;
                     }
 
                     for (int j = l; j < m; j++)
@@ -197,12 +191,12 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                         s = 0.0;
                         for (int k = l; k < n; k++)
                         {
-                            s = s + (u.GetNumberValue(j, k) * u.GetNumberValue(i, k));
+                            s = s + (u[j][k] * u[i][k]);
                         }
 
                         for (int k = l; k < n; k++)
                         {
-                            u.SetValue(j, k, u.GetNumberValue(j, k) + (s * e[k]));
+                            u[j][k] = u[j][k] + (s * e[k]);
                         }
                     }
                 }
@@ -219,28 +213,28 @@ namespace StatisticalLearning.Math.MatrixDecompositions
             {
                 if (g != 0.0)
                 {
-                    h = g * u.GetNumberValue(i, i + 1);
-                    for(int j = l; j < n; j++)
+                    h = g * u[i][i + 1];
+                    for (int j = l; j < n; j++)
                     {
-                        v[j][i] = u.GetNumberValue(i, j) / h;
+                        v[j][i] = u[i][j] / h;
                     }
 
-                    for(int j = l; j < n; j++)
+                    for (int j = l; j < n; j++)
                     {
                         s = 0.0;
                         for (int k = l; k < n; k++)
                         {
-                            s += u.GetNumberValue(i, k) * v[k][j];
+                            s += u[i][k] * v[k][j];
                         }
 
-                        for(int k = l; k < n; k++)
+                        for (int k = l; k < n; k++)
                         {
                             v[k][j] += (s * v[k][i]);
                         }
                     }
                 }
 
-                for(int j = l; j < n; j++)
+                for (int j = l; j < n; j++)
                 {
                     v[i][j] = 0.0;
                     v[j][i] = 0.0;
@@ -252,54 +246,54 @@ namespace StatisticalLearning.Math.MatrixDecompositions
             }
 
             // accumulation of the left hand transformations.
-            for(int i = n - 1; i >= 0; i--)
+            for (int i = n - 1; i >= 0; i--)
             {
                 l = i + 1;
                 g = q[i];
-                for(int j = l; j < n; j++)
+                for (int j = l; j < n; j++)
                 {
-                    u.SetValue(i, j, 0.0);
+                    u[i][j] = 0.0;
                 }
 
                 if (g != 0.0)
                 {
-                    h = u.GetNumberValue(i, i) * g;
-                    for(int j = l; j < n; j++)
+                    h = u[i][i] * g;
+                    for (int j = l; j < n; j++)
                     {
                         s = 0.0;
-                        for(int k = l; k < m; k++)
+                        for (int k = l; k < m; k++)
                         {
-                            s += (u.GetNumberValue(k, i) * u.GetNumberValue(k, j));
+                            s += (u[k][i] * u[k][j]);
                         }
 
                         f = s / h;
-                        for(int k = i; k < m; k++)
+                        for (int k = i; k < m; k++)
                         {
-                            u.SetValue(k, j, u.GetNumberValue(k, j) + f * u.GetNumberValue(k, i));
+                            u[k][j] = u[k][j] + f * u[k][i];
                         }
                     }
 
-                    for(int j = i; j < m; j++)
+                    for (int j = i; j < m; j++)
                     {
-                        u.SetValue(j, i, u.GetNumberValue(j, i) / g);
+                        u[j][i] = u[j][i] / g;
                     }
                 }
                 else
                 {
-                    for(int j = i; j < m; j++)
+                    for (int j = i; j < m; j++)
                     {
-                        u.SetValue(j, i, 0.0);
+                        u[j][i] = 0.0;
                     }
                 }
 
-                u.SetValue(i, i, u.GetNumberValue(i, i) + 1.0);
+                u[i][i] = u[i][i] + 1.0;
             }
 
             eps = eps * x;
             // diagonalization of the bidiagonal form.
             for (int k = n - 1; k >= 0; k--)
             {
-                for(int iteration = 0; iteration < maxIteration; iteration++)
+                for (int iteration = 0; iteration < maxIteration; iteration++)
                 {
                     bool testFConvergence = false;
                     // test f splitting.
@@ -311,7 +305,7 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                             break;
                         }
 
-                        if(System.Math.Abs(q[l - 1]) <= eps)
+                        if (System.Math.Abs(q[l - 1]) <= eps)
                         {
                             break;
                         }
@@ -322,7 +316,7 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                         c = 0.0;
                         s = 0.0;
                         var l1 = l - 1;
-                        for(int i = l; i < k + 1; i++)
+                        for (int i = l; i < k + 1; i++)
                         {
                             f = s * e[i];
                             e[i] = c * e[i];
@@ -338,10 +332,10 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                             s = -f / h;
                             for (int j = 0; j < m; j++)
                             {
-                                y = u.GetNumberValue(j, l1);
-                                z = u.GetNumberValue(j, i);
-                                u.SetValue(j, l1, y * c + z * s);
-                                u.SetValue(j, i, -y * s + z * c);
+                                y = u[j][l1];
+                                z = u[j][i];
+                                u[j][l1] = y * c + z * s;
+                                u[j][i] = -y * s + z * c;
                             }
                         }
                     }
@@ -353,7 +347,7 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                         if (z < 0.0)
                         {
                             q[k] = -z;
-                            for(int j = 0; j < n; j++)
+                            for (int j = 0; j < n; j++)
                             {
                                 v[j][k] = -v[j][k];
                             }
@@ -362,7 +356,7 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                         break;
                     }
 
-                    if (iteration >= maxIteration - 1) 
+                    if (iteration >= maxIteration - 1)
                     {
                         break;
                     }
@@ -386,7 +380,7 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                     // next QR transformation.
                     c = 1.0;
                     s = 1.0;
-                    for(int i = l + 1; i < k + 1; i++)
+                    for (int i = l + 1; i < k + 1; i++)
                     {
                         g = e[i];
                         y = q[i];
@@ -400,7 +394,7 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                         g = -x * s + g * c;
                         h = y * s;
                         y = y * c;
-                        for(int j = 0; j < n; j++)
+                        for (int j = 0; j < n; j++)
                         {
                             x = v[j][i - 1];
                             z = v[j][i];
@@ -414,12 +408,12 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                         s = h / z;
                         f = c * g + s * y;
                         x = -s * g + c * y;
-                        for(int j = 0; j < m; j++)
+                        for (int j = 0; j < m; j++)
                         {
-                            y = u.GetNumberValue(j, i - 1);
-                            z = u.GetNumberValue(j, i);
-                            u.SetValue(j, i - 1, y * c + z * s);
-                            u.SetValue(j, i, -y * s + z * c);
+                            y = u[j][i - 1];
+                            z = u[j][i];
+                            u[j][i - 1] = y * c + z * s;
+                            u[j][i] = -y * s + z * c;
                         }
                     }
 
@@ -429,27 +423,34 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                 }
             }
 
-            return new SingularValueDecompositionResult
+            Result = new SingularValueDecompositionResult
             {
                 S = Matrix.BuildIdentityMatrix(q),
                 U = u,
-                V = new Matrix(v)
+                V = v
             };
+            return this;
+        }
+
+        public Matrix Inverse()
+        {
+            return Result.V.Multiply(Result.S.Inverse())
+                .Multiply(Result.U.Transpose())
+                .Evaluate();
         }
 
         private static List<NormalizedVector> DecomposeMatrix(Matrix matrix)
         {
             var result = new List<NormalizedVector>();
-            var rowEchelon = new RowEchelon();
             VariableEntity lambda = "λ";
             var aatIdentity = Matrix.BuildIdentityMatrix(matrix.NbRows);
             var aatEquation = matrix - (lambda * aatIdentity);
-            var aatDeterminant = aatEquation.ComputeDeterminant().Evaluate(lambda);
+            var aatDeterminant = aatEquation.Determinant().Evaluate(lambda);
             var eingenvalues = aatDeterminant.Solve(lambda);
             foreach (var eingenvalue in eingenvalues.OrderByDescending(_ => _))
             {
                 var vectorMatrix = matrix.Substract(Matrix.BuildIdentityMatrix(matrix.NbRows).Multiply(eingenvalue));
-                var reducedForm = rowEchelon.BuildReducedRowEchelonForm(vectorMatrix);
+                var reducedForm = vectorMatrix.ReducedRowEchelonForm();
                 var arr = new Entity[reducedForm.NbRows][];
                 for (var variableIndex = 0; variableIndex < reducedForm.NbRows; variableIndex++)
                 {
@@ -459,7 +460,7 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                 var variablesMatrix = new Matrix(arr);
                 var matrixEquations = reducedForm.Multiply(variablesMatrix);
                 var dic = new Dictionary<VariableEntity, Entity>();
-                var vector = new NumberEntity[reducedForm.NbRows];
+                var vector = new Vector(reducedForm.NbRows);
                 for (var currentRow = 0; currentRow < reducedForm.NbRows; currentRow++)
                 {
                     var equation = matrixEquations.GetRowVector(currentRow)[0];
@@ -496,27 +497,34 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                             equation.Assign(GetVariableName(index), vector[index] as NumberEntity);
                         }
 
-                        vector[variableIndex] = equation.Eval() as NumberEntity;
+                        vector[variableIndex] = equation.Eval();
                     }
                     else if(!rightPart.Equals(default(KeyValuePair<VariableEntity, Entity>)) && rightPart.Key != null)
                     {
-                        vector[variableIndex] = (NumberEntity)Number.Create(1);
+                        vector[variableIndex] = 1;
                     }
                     else
                     {
-                        vector[variableIndex] = (NumberEntity)Number.Create(0);
+                        vector[variableIndex] = 0;
                     }
                 }
 
-                var length = (NumberEntity)Number.Create(System.Math.Sqrt(vector.Sum(_ => System.Math.Pow(_.Number.Value, 2))));
-                var normalizedVector = new NumberEntity[reducedForm.NbRows];
+                var length = MathEntity.Sqrt(vector.Sum(_ => MathEntity.Pow(_, 2)));
+                var normalizedVector = new double[reducedForm.NbRows];
                 for(int i = 0; i < reducedForm.NbRows; i++)
                 {
-                    normalizedVector[i] = (NumberEntity)(vector[i] / length).Eval();
+                    if (length.Eval().IsZero())
+                    {
+                        normalizedVector[i] = 0;
+                    }
+                    else
+                    {
+                        normalizedVector[i] = (vector[i] / length).Eval().GetNumber();
+                    }
                 }
 
 
-                result.Add(new NormalizedVector(eingenvalue, normalizedVector));
+                result.Add(new NormalizedVector(eingenvalue.Eval().GetNumber(), normalizedVector));
             }
 
             return result;
@@ -525,6 +533,26 @@ namespace StatisticalLearning.Math.MatrixDecompositions
         private static string GetVariableName(int pivotIndex)
         {
             return $"{VARIABLE_NAME}{pivotIndex}";
+        }
+
+        private static Entity Hypotenuse(Entity a, Entity b)
+        {
+            Entity r = 0.0;
+            Entity absA = MathEntity.Abs(a);
+            Entity absB = MathEntity.Abs(b);
+
+            if (absA > absB)
+            {
+                r = b / a;
+                r = absA * MathEntity.Sqrt(1 + r * r);
+            }
+            else if (b != 0)
+            {
+                r = a / b;
+                r = absB * MathEntity.Sqrt(1 + r * r);
+            }
+
+            return r;
         }
 
         private static double Hypotenuse(double a, double b)
@@ -549,14 +577,14 @@ namespace StatisticalLearning.Math.MatrixDecompositions
 
         private class NormalizedVector
         {
-            public NormalizedVector(Entity eingenvalue, NumberEntity[] vector)
+            public NormalizedVector(double eingenvalue, double[] vector)
             {
                 EingenValue = eingenvalue;
                 Vector = vector;
             }
 
-            public Entity EingenValue { get; set; }
-            public NumberEntity[] Vector { get; set; }
+            public double EingenValue { get; set; }
+            public double[] Vector { get; set; }
         }
     }
 }

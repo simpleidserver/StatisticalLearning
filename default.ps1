@@ -15,7 +15,7 @@ properties {
 
 task default -depends local
 task local -depends compile, test
-task ci -depends clean, release, compile, pack, publish
+task ci -depends clean, release, compile, test, pack, publish
 
 task publish {
 	echo $source_dir

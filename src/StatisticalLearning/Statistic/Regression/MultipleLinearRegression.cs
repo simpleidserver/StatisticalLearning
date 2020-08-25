@@ -10,32 +10,52 @@ namespace StatisticalLearning.Statistic.Regression
 {
     public class MultipleLinearRegression
     {
-        public LinearRegressionResult Regress(double[][] inputs, double[] outputs)
+        private readonly SingularValueDecomposition _singularValueDecomposition;
+        private readonly MatrixDecompositionAlgs _alg;
+        private LinearRegressionResult _linearRegressionResult;
+
+        public MultipleLinearRegression(MatrixDecompositionAlgs alg)
         {
-            var decomposition = new SingularValueDecomposition();
-            var decompositionResult = decomposition.Decompose(inputs);
-            var coefficients = decompositionResult.V.Multiply(decompositionResult.S.Inverse()).Multiply(decompositionResult.U.Transpose()).Multiply(outputs.Select(_ => (NumberEntity)Number.Create(_)).ToArray()).Eval().GetColumnVector(0);
-            var coefs = coefficients.Select(_ => (_ as NumberEntity).Number.Value).ToArray();
-            int n = inputs.Length;
-            int k = inputs[0].Length;
-            var result = new LinearRegressionResult();
-            var avgOutputs = CalculateAvg(outputs);
-            var ssOutputs = CalculateSumOfSquares(outputs, avgOutputs);
-            var rss = GetResidualSumOfSquare(coefs, inputs, outputs);
-            var mse = GetMeanSquareError(rss, n, k);
-            var rse = GetResidualStandardError(mse);
-            var matrixInput = new Matrix(inputs);
-            matrixInput = matrixInput.AddColumn(Number.Create(1));
-            var covarianceMatrix = matrixInput.Transpose().Multiply(matrixInput).Inverse().Multiply(Number.Create(mse)).Eval();
-            for (int index = 0; index < coefficients.Length; index++)
+            _alg = alg;
+            _singularValueDecomposition = new SingularValueDecomposition();
+        }
+
+        public MultipleLinearRegression() : this(MatrixDecompositionAlgs.NAIVE) { }
+
+        public LinearRegressionResult LinearRegression => _linearRegressionResult;
+
+        public SingularValueDecomposition SingularValueDecomposition => _singularValueDecomposition;
+
+        public MultipleLinearRegression Regress(Matrix matrix, Vector output, bool addOne = true)
+        {
+            if(addOne)
             {
-                var coefficient = (coefficients[index] as NumberEntity).Number.Value;
-                var covariance = covarianceMatrix.GetRowVector(index)[index];
-                var standardError = (MathEntity.Sqrt(covariance).Eval() as NumberEntity).Number.Value;
-                var tStat = CalculateTStatistic(coefficient, standardError);
-                var pValue = CalculatePValue(tStat, n, k);
-                var coefficientResult = new CoefficientResult { Value = coefficient, StandardError = standardError, TStatistic = tStat, PValue = pValue };
-                if (index == 0)
+                matrix = matrix.AddColumn(1);
+            }
+
+            output.SetVertical();
+            if (_alg == MatrixDecompositionAlgs.NAIVE)
+            {
+                _singularValueDecomposition.DecomposeNaive(matrix);
+            }
+            else
+            {
+                _singularValueDecomposition.DecomposeGolubReinsch(matrix);
+            }
+
+            var coefficients = _singularValueDecomposition.Inverse()
+                .Multiply((Matrix)output)
+                .Evaluate()
+                .GetColumnVector(0);
+            var result = new LinearRegressionResult();
+            for(int i = 0; i < coefficients.Length; i++)
+            {
+                var coefficient = coefficients[i].GetNumber();
+                var coefficientResult = new CoefficientResult
+                {
+                    Value = coefficient
+                };
+                if (i ==  0)
                 {
                     result.Intercept = coefficientResult;
                 }
@@ -45,79 +65,138 @@ namespace StatisticalLearning.Statistic.Regression
                 }
             }
 
-            result.ResidualSumOfSquare = rss;
-            result.MeanSquareError = mse;
-            result.ResidualStandardError = rse;
-            result.RSquare = CalculateRSquare(rss, ssOutputs);
+            _linearRegressionResult = result;
+            UpdateInformation(matrix, output, addOne);
+            return this;
+        }
+
+        public void UpdateInformation(Matrix matrix, Vector output, bool addOne = true, bool useCovariance = true)
+        {
+            int n = matrix.NbRows;
+            int k = matrix.NbColumns;
+            if (addOne)
+            {
+                k = k - 1;
+            }
+
+            var avgOutputs = output.Avg();
+            var ssOutputs = output.SumOfSquares(avgOutputs);
+            var coefficients = new double[1 + _linearRegressionResult.SlopeLst.Count()];
+            coefficients[0] = _linearRegressionResult.Intercept.Value;
+            for(int  i = 0; i < _linearRegressionResult.SlopeLst.Count(); i++)
+            {
+                coefficients[i + 1] = _linearRegressionResult.SlopeLst.ElementAt(i).Value;
+            }
+
+            var rss = ResidualSumOfSquare(coefficients, matrix.Values, output);
+            var mse = MeanSquareError(rss, n, k);
+            var rse = ResidualStandardError(mse);
+            _linearRegressionResult.SlopeLst.Clear();
+            Matrix informationMatrix = null;
+            if (useCovariance)
+            {
+                informationMatrix = matrix.Transpose().Multiply(matrix).Inverse().Multiply(mse).Evaluate();
+            }
+            else
+            {
+                informationMatrix = _singularValueDecomposition.Inverse();
+            }
+
+            UpdateStandardErrors(coefficients, informationMatrix, n, k);
+            _linearRegressionResult.ResidualSumOfSquare = rss;
+            _linearRegressionResult.MeanSquareError = mse;
+            _linearRegressionResult.ResidualStandardError = rse;
+            _linearRegressionResult.RSquare = RSquare(rss, ssOutputs);
+        }
+
+        public double Transform(double[] input)
+        {
+            double result = 0.0;
+            for (int i = 0; i < input.Length; i++)
+            {
+                if (i == 0)
+                {
+                    result += input[i] * _linearRegressionResult.Intercept.Value;
+                }
+                else
+                {
+                    result += input[i] * _linearRegressionResult.SlopeLst.ElementAt(i - 1).Value;
+                }
+            }
+
             return result;
         }
 
-        private static double CalculateAvg(double[] values)
+        private void UpdateStandardErrors(double[] coefficients, Matrix informationMatrix, int n, int k)
         {
-            double totalSum = 0;
-            foreach (var value in values)
+            for (int index = 0; index < coefficients.Length; index++)
             {
-                totalSum += value;
+                var coefficient = coefficients[index];
+                var standardError = System.Math.Sqrt(informationMatrix.GetValue(index, index).GetNumber());
+                var tStat = TStatistic(coefficient, standardError);
+                var pValue = PValue(tStat, n, k);
+                var coefficientResult = new CoefficientResult
+                {
+                    Value = coefficient,
+                    StandardError = standardError,
+                    TStatistic = tStat,
+                    PValue = pValue
+                };
+                if (index == 0)
+                {
+                    _linearRegressionResult.Intercept = coefficientResult;
+                }
+                else
+                {
+                    _linearRegressionResult.SlopeLst.Add(coefficientResult);
+                }
             }
-
-            return totalSum / values.Count();
         }
 
-        private static double CalculateSumOfSquares(double[] values, double avg)
+        private static double ResidualSumOfSquare(Vector coefficients, Entity[][] inputs, Vector outputs)
         {
-            double result = 0;
-            foreach (var value in values)
-            {
-                result += System.Math.Pow((value - avg), 2);
-            }
-
-            return result;
-        }
-
-        private static double GetResidualSumOfSquare(double[] coefficients, double[][] inputs, double[] outputs)
-        {
-            double result = 0;
+            Entity result = 0;
             for (int i = 0; i < inputs.Length; i++)
             {
                 var input = inputs[i];
                 var output = outputs[i];
-                double computedY = coefficients[0];
+                Entity computedY = 0.0;
                 for (int y = 0; y < input.Length; y++)
                 {
-                    computedY += coefficients[y + 1] * input[y];
+                    computedY += coefficients[y] * input[y];
                 }
 
-                result += System.Math.Pow(output - computedY, 2);
+                result = (result + MathEntity.Pow(computedY - output, 2)).Eval();
             }
 
-            return result;
+            return result.Eval().GetNumber();
         }
 
-        private static double GetMeanSquareError(double rse, int n, int p)
+        private static double MeanSquareError(double rse, int n, int p)
         {
-            return rse / (n - p - 1); ;
+            return rse / (n - (p + 1));
         }
 
-        private static double GetResidualStandardError(double mse)
+        private static double ResidualStandardError(double mse)
         {
             return System.Math.Sqrt(mse);
         }
 
-        private static double CalculateTStatistic(double estimatedCoefficient, double se)
+        private static double TStatistic(double estimatedCoefficient, double se)
         {
-            return estimatedCoefficient / (se);
+            return estimatedCoefficient / se;
         }
 
-        private static double CalculatePValue(double tStatistic, int n, int k)
+        private static double PValue(double tStatistic, int n, int k)
         {
             int degreeOfFreedom = n - k - 1;
             var studentLaw = new StudentLaw();
             return studentLaw.ComputeUpperCumulative(tStatistic, degreeOfFreedom) * 2;
         }
 
-        private static double CalculateRSquare(double rss, double tss)
+        private static double RSquare(Entity rss, Entity tss)
         {
-            return 1 - (rss / tss);
+            return (1 - (rss / tss)).GetNumber();
         }
     }
 }

@@ -9,7 +9,10 @@ namespace StatisticalLearning.Math.Entities
     public abstract class Entity : IComparable
     {
         public static implicit operator Entity(Number number) => new NumberEntity(number);
+        public static implicit operator Entity(int number) => new NumberEntity(Number.Create(number));
+        public static implicit operator Entity(double number) => new NumberEntity(Number.Create(number));
         public static implicit operator Entity(string name) => new VariableEntity(name);
+
         public static Entity operator +(Entity a, Entity b)
         {
             var result = new OperatorEntity(Constants.Operators.SUM);
@@ -24,7 +27,6 @@ namespace StatisticalLearning.Math.Entities
             result.Children.Add(b);
             return result;
         }
-
         public static Entity operator *(Entity a, Entity b)
         {
             var result = new OperatorEntity(Constants.Operators.MUL);
@@ -38,6 +40,84 @@ namespace StatisticalLearning.Math.Entities
             result.Children.Add(a);
             result.Children.Add(b);
             return result;
+        }
+        public static Entity operator -(Entity a)
+        {
+            return -1 * a;
+        }
+        public static bool operator ==(Entity a, Entity b)
+        {
+            if (object.ReferenceEquals(a, null) && object.ReferenceEquals(b, null))
+            {
+                return true;
+            }
+
+            if (object.ReferenceEquals(a, null) || object.ReferenceEquals(b, null))
+            {
+                return false;
+            }
+
+            if (a.IsNumberEntity(out NumberEntity na) && b.IsNumberEntity(out NumberEntity nb))
+            {
+                return na == nb;
+            }
+
+            return false;
+        }
+        public static bool operator !=(Entity a, Entity b)
+        {
+            if (object.ReferenceEquals(a, null) && object.ReferenceEquals(b, null))
+            {
+                return false;
+            }
+
+            if (object.ReferenceEquals(a, null) || object.ReferenceEquals(b, null))
+            {
+                return true;
+            }
+
+            if (a.IsNumberEntity(out NumberEntity na) && b.IsNumberEntity(out NumberEntity nb))
+            {
+                return na != nb;
+            }
+
+            return false;
+        }
+        public static bool operator <=(Entity a, Entity b)
+        {
+            if (a.IsNumberEntity(out NumberEntity na) && b.IsNumberEntity(out NumberEntity nb))
+            {
+                return na <= nb;
+            }
+
+            return false;
+        }
+        public static bool operator <(Entity a, Entity b)
+        {
+            if (a.IsNumberEntity(out NumberEntity na) && b.IsNumberEntity(out NumberEntity nb))
+            {
+                return na < nb;
+            }
+
+            return false;
+        }
+        public static bool operator >=(Entity a, Entity b)
+        {
+            if (a.IsNumberEntity(out NumberEntity na) && b.IsNumberEntity(out NumberEntity nb))
+            {
+                return na >= nb;
+            }
+
+            return false;
+        }
+        public static bool operator >(Entity a, Entity b)
+        {
+            if (a.IsNumberEntity(out NumberEntity na) && b.IsNumberEntity(out NumberEntity nb))
+            {
+                return na > nb;
+            }
+
+            return false;
         }
 
 
@@ -118,7 +198,6 @@ namespace StatisticalLearning.Math.Entities
         public abstract Entity Derive();
         public abstract Entity Eval();
 
-
         public void Assign(VariableEntity variable, NumberEntity number)
         {
             var children = new List<VariableEntity>();
@@ -128,7 +207,6 @@ namespace StatisticalLearning.Math.Entities
                 child.AssignNumber(number);
             }
         }
-
 
         public IEnumerable<Entity> Solve(VariableEntity variable)
         {
@@ -286,6 +364,36 @@ namespace StatisticalLearning.Math.Entities
         {
             result = this as VariableEntity;
             return result != null;
+        }
+
+        public bool IsOne()
+        {
+            return IsNumber(1);
+        }
+
+        public bool IsZero()
+        {
+            return IsNumber(0);
+        }
+
+        public bool IsNumber(double number)
+        {
+            if (IsNumberEntity(out NumberEntity n) && n.Number.Value == number)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public double GetNumber()
+        {
+            if (IsNumberEntity(out NumberEntity n))
+            {
+                return n.Number.Value;
+            }
+
+            return 0;
         }
 
         public abstract int CompareTo(object obj);

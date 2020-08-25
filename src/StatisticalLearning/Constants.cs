@@ -20,6 +20,8 @@ namespace StatisticalLearning
             public const string POW = "pow";
             public const string ACOS = "acos";
             public const string COS = "cos";
+            public const string ABS = "abs";
+            public const string EXP = "exp";
         }
 
         public static Dictionary<string, string> MappingOperatorToSign = new Dictionary<string, string>

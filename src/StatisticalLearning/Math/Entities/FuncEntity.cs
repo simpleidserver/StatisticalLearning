@@ -70,6 +70,12 @@ namespace StatisticalLearning.Math.Entities
                     case Constants.Funcs.COS:
                         res = Number.Create(System.Math.Cos(result.Number.Value));
                         break;
+                    case Constants.Funcs.ABS:
+                        res = System.Math.Abs(result.Number.Value);
+                        break;
+                    case Constants.Funcs.EXP:
+                        res = System.Math.Exp(result.Number.Value);
+                        break;
                 }
             }
 

@@ -3,18 +3,23 @@
 
 using StatisticalLearning.Math.Entities;
 
-namespace StatisticalLearning.Math.MatrixEchelons
+namespace StatisticalLearning.Math
 {
-    public class RowEchelon
+    public static class RowEchelonExtensions
     {
         /// <summary>
         /// https://en.wikipedia.org/wiki/Row_echelon_form
         /// </summary>
         /// <param name="matrix"></param>
         /// <returns></returns>
-        public Matrix BuildReducedRowEchelonForm(Matrix matrix)
+        public static Matrix ReducedRowEchelonForm(this Matrix matrix)
         {
             var result = (Matrix)matrix.Clone();
+            if (result.NbColumns == 1 && result.NbRows == 1)
+            {
+                return result;
+            }
+
             var rowIndex = 0;
             for(int pivotColumn = 0; pivotColumn < result.NbColumns; pivotColumn++)
             {

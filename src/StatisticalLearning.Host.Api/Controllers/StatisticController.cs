@@ -17,21 +17,29 @@ namespace StatisticalLearning.Api.Host.Controllers
         [HttpPost("regressions/linear")]
         public IActionResult GetLinarRegressionResult([FromBody] GetLinearRegressionRequest request)
         {
-            var simpleLinearRegression = new MultipleLinearRegression();
+            var simpleLinearRegression = new MultipleLinearRegression(MatrixDecompositionAlgs.GOLUB_REINSCH);
             var result = simpleLinearRegression.Regress(request.Inputs, request.Outputs);
-            return new OkObjectResult(result.ToDto());
+            return new OkObjectResult(result.LinearRegression.ToDto());
+        }
+
+        [HttpPost("regressions/linear")]
+        public IActionResult GetLogisticRegressionResult([FromBody] GetLogisticRegressionRequest request)
+        {
+            var logisticRegression = new LogisticRegression();
+            logisticRegression.Regress(request.Inputs, request.Outputs);
+            return Ok();
         }
 
         [HttpPost("analysis/pca")]
         public IActionResult NaivePrincipalComponentAnalysis([FromBody] GetPrincipalComponentAnalysisRequest request)
         {
-            var analysis = new PrincipalComponentAnalysis();
-            var pcs = analysis.Compute(request.Matrix, true);
-            var transformed = analysis.Transform(request.Matrix, true);
+            var analysis = new PrincipalComponentAnalysis(true, 2);
+            var pcs = analysis.Compute(request.Matrix);
+            var transformed = analysis.Transform(request.Matrix);
             var result = new PrincipalComponentAnalysisResponse
             {
-                PrincipalComponents = pcs.Select(_ => _.ToDto()).ToArray(),
-                Transformed = transformed.DoubleArr
+                PrincipalComponents = pcs.PrincipalComponents.Select(_ => _.ToDto()).ToArray(),
+                Transformed = transformed.DoubleValues
             };
             return new OkObjectResult(result);
         }

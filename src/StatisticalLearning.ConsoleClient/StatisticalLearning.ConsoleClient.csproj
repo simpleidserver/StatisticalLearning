@@ -9,9 +9,6 @@
     <None Include="..\..\datasets\Advertising.csv" Link="DataSets\Advertising.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="..\..\datasets\Boston.csv" Link="DataSets\Boston.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
   <ItemGroup>

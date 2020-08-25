@@ -11,17 +11,17 @@ namespace StatisticalLearning.Tests.Math.MatrixDecompositions
         [Fact]
         public void When_Decompose_With_QR()
         {
-            var matrix = new Matrix(new double[][]
+            Matrix matrix = new double[][]
             {
                 new double[] { 1, -1, 4 },
                 new double[] { 1, 4, -2 },
                 new double[] { 1, 4, 2 },
                 new double[] { 1, -1, 0 }
-            });
-            var qrDecomposition = new QRDecomposition();
-            var result = qrDecomposition.Decompose(matrix);
-            Assert.Equal("[ [ 0,5,-0,5,0,5 ],[ 0,5,0,5,-0,5 ],[ 0,5,0,5,0,5 ],[ 0,5,-0,5,-0,5 ] ]", result.Q.ToString());
-            Assert.Equal("[ [ 2,3,2 ],[ 0,5,-2 ],[ 0,0,4 ] ]", result.R.ToString());
+            };
+            var result = QRDecomposition.Decompose(matrix);
+            Assert.Equal(2, result.R.GetValue(0, 0).GetNumber());
+            Assert.Equal(3, result.R.GetValue(0, 1).GetNumber());
+            Assert.Equal(2, result.R.GetValue(0, 2).GetNumber());
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) SimpleIdServer. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
-using StatisticalLearning.Extensions;
 using StatisticalLearning.Math.Entities;
 using System;
 using System.Collections.Generic;
@@ -10,38 +9,169 @@ namespace StatisticalLearning.Math
 {
     public class Matrix : IEquatable<Matrix>, ICloneable
     {
-        private Entity[][] _arr;
+        private readonly Entity[][] _values;
+        public static implicit operator Matrix(Vector vector)
+        {
+            return new Matrix(vector);
+        }
+        public static implicit operator Matrix(double[][] values)
+        {
+            var arr = new Entity[values.Length][];
+            for(int row = 0; row < values.Length; row++)
+            {
+                arr[row] = new Entity[values[0].Length];
+                for(int column = 0; column < values[0].Length; column++)
+                {
+                    arr[row][column] = values[row][column];
+                }
+            }
+
+            return new Matrix(arr);
+        }
+        public static implicit operator Matrix(Entity[][] values)
+        {
+            return new Matrix(values);
+        }
         public static Matrix operator *(Matrix a, Matrix b) => a.Multiply(b);
         public static Matrix operator -(Matrix a, Matrix b) => a.Substract(b);
         public static Matrix operator *(Entity a, Matrix b) => b.Multiply(a);
         public static Matrix operator *(Matrix a, Entity b) => a.Multiply(b);
 
-        public Matrix(double[] arr)
+        public Matrix(Entity[][] values)
         {
-            _arr = arr.Select(_ => new Entity[] { Number.Create(_) }).ToArray();
+            _values = values;
         }
 
-        public Matrix(double[][] arr)
+        public Matrix(Vector vector)
         {
-            _arr = arr.Select(_ => _.Select(__ => (Entity)Number.Create(__)).ToArray()).ToArray();
+            Entity[][] values;
+            if (vector.Direction == VectorDirections.HORIZONTAL)
+            {
+                values = new Entity[1][];
+                values[0] = new Entity[vector.Length];
+                for (int i = 0; i < vector.Length; i++)
+                {
+                    values[0][i] = vector[i];
+                }
+            }
+            else
+            {
+                values = new Entity[vector.Length][];
+                for(int i = 0; i < vector.Length; i++)
+                {
+                    values[i] = new Entity[] { vector[i] };
+                }
+            }
+
+            _values = values;
         }
 
-        public Matrix(Entity[][] arr)
+        public Entity[][] Values => _values;
+        public double[][] DoubleValues
         {
-            _arr = arr;
+            get
+            {
+                var values = new double[NbRows][];
+                for(int row = 0; row < NbRows; row++)
+                {
+                    values[row] = new double[NbColumns];
+                    for(int column = 0; column < NbColumns; column++)
+                    {
+                        values[row][column] = _values[row][column].GetNumber();
+                    }
+                }
+
+                return values;
+            }
+        }
+        public int NbRows => Values.Length;
+        public int NbColumns => Values[0].Length;
+
+        /// <summary>
+        /// Evaluate each entity of the matrix.
+        /// </summary>
+        /// <returns></returns>
+        public Matrix Evaluate()
+        {
+            for (int row = 0; row < NbRows; row++)
+            {
+                for (int column = 0; column < NbColumns; column++)
+                {
+                    var record = GetValue(row, column);
+                    _values[row][column] = record.Eval();
+                }
+            }
+
+            return this;
         }
 
-        public Entity[][] Arr => _arr;
-        public double[][] DoubleArr => _arr.Select(_ => _.Select(__ => (__ as NumberEntity).Number.Value).ToArray()).ToArray();
-        public int NbRows => Arr.Length;
-        public int NbColumns => Arr[0].Length;
+        #region Get
 
+        /// <summary>
+        /// Get diagonal.
+        /// </summary>
+        /// <returns></returns>
+        public Entity[] GetDiagonal()
+        {
+            var min = System.Math.Min(NbRows, NbColumns);
+            var result = new Entity[min];
+            for (int i = 0; i < min; i++)
+            {
+                result[i] = GetValue(i, i);
+            }
+
+            return result;
+        }
+
+        public Entity GetValue(int row, int column)
+        {
+            return _values[row][column];
+        }
+
+        public Vector GetColumnVector(int column)
+        {
+            var values = new Entity[NbRows];
+            for (var i = 0; i < NbRows; i++)
+            {
+                values[i] = _values[i][column];
+            }
+
+            return new Vector(values);
+        }
+
+        public Vector GetRowVector(int row)
+        {
+            return _values[row];
+        }
+
+        public Matrix GetSubMatrix(int row, int column)
+        {
+            int m = NbRows - row;
+            int n = NbColumns - column;
+            var arr = new Entity[m][];
+            for (int r = 0; r < m; r++)
+            {
+                arr[r] = new Entity[n];
+                for (int c = 0; c < n; c++)
+                {
+                    arr[r][c] = GetValue(r + row, c + column);
+                }
+            }
+
+            return new Matrix(arr);
+        }
+
+        /// <summary>
+        /// Get index of the pivot.
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
         public int? GetPivotColumnIndex(int row)
         {
             var rowVector = GetRowVector(row);
             for (int i = 0; i < rowVector.Length; i++)
             {
-                if (rowVector[i].IsNumberEntity(out NumberEntity n) && n.Number.Value == 1)
+                if (rowVector[i].IsOne())
                 {
                     return i;
                 }
@@ -50,194 +180,67 @@ namespace StatisticalLearning.Math
             return null;
         }
 
-        public double[] GetDiagonalNumbers()
+        public KeyValuePair<int, int>? FindPivotColumn(int rowIndex, int columnIndex)
         {
-            var min = System.Math.Min(NbRows, NbColumns);
-            var result = new double[min];
-            for (int i = 0; i < min; i++)
+            for (int row = rowIndex; row < NbRows; row++)
             {
-                result[i] = GetNumberValue(i, i);
-            }
-
-            return result;
-        }
-
-        public Entity ComputeDeterminant()
-        {
-            if (NbRows == 2)
-            {
-                return GetValue(0, 0) * GetValue(1, 1) - GetValue(0, 1) * GetValue(1, 0);
-            }
-            else if (NbRows > 2)
-            {
-                int nbDeterminant = 1;
-                Entity result = null;
-                for (int column = 0; column < NbColumns; column++)
+                var val = GetValue(row, columnIndex) as NumberEntity;
+                if (val == null || (val != null && val.Number.Value != 0))
                 {
-                    var determinant = GetValue(0, column) * GetDeterminantMatrix(0, column).ComputeDeterminant();
-                    if (result == null)
-                    {
-                        result = determinant;
-                    }
-                    else
-                    {
-                        if (nbDeterminant % 2 == 0)
-                        {
-                            result -= determinant;
-                        }
-                        else
-                        {
-                            result += determinant;
-                        }
-                    }
-
-                    nbDeterminant++;
-                }
-
-                return result;
-            }
-
-            return GetValue(0, 0);
-        }
-
-        public Matrix Eval()
-        {
-            for (int row = 0; row < NbRows; row++)
-            {
-                for(int column = 0; column < NbColumns; column++)
-                {
-                    var record = GetValue(row, column);
-                    _arr[row][column] = record.Eval();
+                    return new KeyValuePair<int, int>(row, columnIndex);
                 }
             }
 
-            return this;
+            return null;
         }
 
-        public Matrix GetDeterminantMatrix(int excludedRow, int excludedColumn)
+        public int? FindPreviousNullRow(int currentRow)
         {
-            var result = new Entity[NbRows - 1][];
-            int rowIndex = 0;
-            for(int row = 0; row < NbRows; row++)
+            for (int row = currentRow - 1; row >= 0; row--)
             {
-                if (row == excludedRow)
+                var rowVector = GetRowVector(row);
+                if (rowVector.All(_ =>
                 {
-                    continue;
-                }
-
-                var columns = new Entity[NbColumns - 1];
-                int columnIndex = 0;
-                for(int column = 0; column < NbColumns; column++)
+                    return _.IsZero();
+                }))
                 {
-                    if (column == excludedColumn)
-                    {
-                        continue;
-                    }
-
-                    columns[columnIndex] = GetValue(row, column);
-                    columnIndex++;
-                }
-
-                result[rowIndex] = columns;
-                rowIndex++;
-            }
-
-            return new Matrix(result);
-        }
-
-        public static Matrix Multiply(double[] firstVector, double[] secondVector)
-        {
-            var arr = new double[firstVector.Length][];
-            for(int row = 0; row < firstVector.Length; row++)
-            {
-                arr[row] = new double[secondVector.Length];
-                for(int column = 0; column < secondVector.Length; column++)
-                {
-                    arr[row][column] = firstVector[row] * secondVector[column];
+                    return row;
                 }
             }
 
-            return new Matrix(arr);
+            return null;
         }
 
-        public static Matrix BuildIdentityMatrix(int nbRowColumn)
+        #endregion
+
+        #region Set
+
+        public void SetValue(int row, int column, Entity entity)
         {
-            var result = new Entity[nbRowColumn][];
-            for(var row = 0; row < nbRowColumn; row++)
-            {
-                var rowContent = new Entity[nbRowColumn];
-                for (var column = 0; column < nbRowColumn; column++)
-                {
-                    if (column == row)
-                    {
-                        rowContent[column] = Number.Create(1);
-                    }
-                    else
-                    {
-                        rowContent[column] = Number.Create(0);
-                    }
-                }
-
-                result[row] = rowContent;
-            }
-
-            return new Matrix(result);
+            _values[row][column] = entity;
         }
 
-        public static Matrix BuildIdentityMatrix(double[] values)
+        /// <summary>
+        /// Swap two lines.
+        /// </summary>
+        /// <param name="fRow"></param>
+        /// <param name="sRow"></param>
+        public void SwapLines(int fRow, int sRow)
         {
-            var arr = new double[values.Length][];
-            for(int i = 0; i < values.Length; i++)
+            var fVector = GetRowVector(fRow);
+            var sVector = GetRowVector(sRow);
+            for (int column = 0; column < NbColumns; column++)
             {
-                var row = new double[values.Length];
-                for(int j = 0; j < values.Length; j++)
-                {
-                    if (i == j)
-                    {
-                        row[j] = values[i];
-                    }
-                    else
-                    {
-                        row[j] = 0.0;
-                    }
-                }
-
-                arr[i] = row;
+                SetValue(fRow, column, sVector[column]);
+                SetValue(sRow, column, fVector[column]);
             }
-
-            return new Matrix(arr);
         }
 
-        public static Matrix BuildEmptyMatrix(int nbRow, int nbColumn)
-        {
-            var result = new Entity[nbRow][];
-            for (var row = 0; row < nbRow; row++)
-            {
-                var rowContent = new Entity[nbColumn];
-                for (var column = 0; column < nbColumn; column++)
-                {
-                    rowContent[column] = Number.Create(0);
-                }
-
-                result[row] = rowContent;
-            }
-
-            return new Matrix(result);
-        }
-
-
-        public Matrix Transpose()
-        {
-            var result = new Entity[NbColumns][];
-            for (var column = 0; column < NbColumns; column++)
-            {
-                var columnVector = GetColumnVector(column);
-                result[column] = columnVector;
-            }
-
-            return new Matrix(result);
-        }
-
+        /// <summary>
+        /// Add a new column in the first index.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         public Matrix AddColumn(Entity entity)
         {
             var result = new Entity[NbRows][];
@@ -257,6 +260,41 @@ namespace StatisticalLearning.Math
             return new Matrix(result);
         }
 
+        public void Replace(Matrix newMatrix, int row, int column)
+        {
+            for (int r = row; r < NbRows; r++)
+            {
+                for (int c = column; c < NbColumns; c++)
+                {
+                    SetValue(r, c, newMatrix.GetValue(r - row, c - column));
+                }
+            }
+        }
+
+        #endregion
+
+        #region Transform matrix
+
+        /// <summary>
+        /// Transpose a matrix.
+        /// </summary>
+        /// <returns></returns>
+        public Matrix Transpose()
+        {
+            var result = new Entity[NbColumns][];
+            for (var column = 0; column < NbColumns; column++)
+            {
+                var columnVector = GetColumnVector(column);
+                result[column] = columnVector.Values;
+            }
+
+            return new Matrix(result);
+        }
+
+        /// <summary>
+        /// Inverse the matrix.
+        /// </summary>
+        /// <returns></returns>
         public Matrix Inverse()
         {
             var clone = (Matrix)Clone();
@@ -316,36 +354,50 @@ namespace StatisticalLearning.Math
             return identity;
         }
 
-        public Matrix ComputeMeanCenteredMatrix()
+        #endregion
+
+        #region Calculation on matrix
+
+        /// <summary>
+        /// Calculate centered mean matrix.
+        /// http://users.stat.umn.edu/~helwig/notes/datamat-Notes.pdf.
+        /// </summary>
+        /// <returns></returns>
+        public Matrix CenteredMeanMatrix()
         {
-            var arr = new double[NbRows][];
+            var arr = new Entity[NbRows][];
             for (int column = 0; column < NbColumns; column++)
             {
-                var mean = GetNumberColumnVector(column).ComputeMean();
+                var mean = GetColumnVector(column).Avg();
                 for (int row = 0; row < NbRows; row++)
                 {
                     var value = arr[row];
                     if (value == null)
                     {
-                        arr[row] = new double[NbColumns];
+                        arr[row] = new Entity[NbColumns];
                     }
 
-                    arr[row][column] = GetNumberValue(row, column) - mean;
+                    arr[row][column] = GetValue(row, column) - mean;
                 }
             }
 
             return new Matrix(arr);
         }
 
-        public Matrix ComputeMeanCenteredReducedMatrix(bool unbiased = true)
+        /// <summary>
+        /// Compute centered mean reduced matrix.
+        /// </summary>
+        /// <param name="unbiased"></param>
+        /// <returns></returns>
+        public Matrix CenteredMeanReducedMatrix(bool unbiased = true)
         {
-            var result = ComputeMeanCenteredMatrix();
-            for(int colum = 0; colum < NbColumns; colum++)
+            var result = CenteredMeanMatrix();
+            for (int colum = 0; colum < NbColumns; colum++)
             {
-                var columnStandardDeviation = GetNumberColumnVector(colum).ComputeStandardDeviation(unbiased);
+                var columnStandardDeviation = GetColumnVector(colum).StandardDeviation(unbiased);
                 for (int row = 0; row < NbRows; row++)
                 {
-                    var value = result.GetNumberValue(row, colum);
+                    var value = result.GetValue(row, colum);
                     result.SetValue(row, colum, (value / columnStandardDeviation));
                 }
             }
@@ -353,26 +405,35 @@ namespace StatisticalLearning.Math
             return result;
         }
 
-        public Matrix ComputeCenteredNormativeMatrix(bool unbiased = true)
+        /// <summary>
+        /// Calculate centered normative matrix.
+        /// </summary>
+        /// <param name="unbiased"></param>
+        /// <returns></returns>
+        public Matrix CenteredNormativeMatrix(bool unbiased = true)
         {
-            var result = ComputeMeanCenteredReducedMatrix(unbiased).Multiply(Number.Create(1) / MathEntity.Sqrt(Number.Create(NbRows))).Eval();
+            var result = CenteredMeanReducedMatrix(unbiased).Multiply(Number.Create(1) / MathEntity.Sqrt(Number.Create(NbRows)));
             return result;
         }
 
-        public Matrix ComputeCovariance()
+        /// <summary>
+        /// Calculate covariance.
+        /// </summary>
+        /// <returns></returns>
+        public Matrix Covariance()
         {
-            var result = new double[NbColumns][];
-            for(int columnX = 0; columnX < NbColumns; columnX++)
+            var result = new Entity[NbColumns][];
+            for (int columnX = 0; columnX < NbColumns; columnX++)
             {
-                result[columnX] = new double[NbColumns];
-                var xVector = GetNumberColumnVector(columnX);
-                var meanX = xVector.ComputeMean();
-                for(int columnY = 0; columnY < NbColumns; columnY++)
+                result[columnX] = new Entity[NbColumns];
+                var xVector = GetColumnVector(columnX);
+                var meanX = xVector.Avg();
+                for (int columnY = 0; columnY < NbColumns; columnY++)
                 {
-                    var yVector = GetNumberColumnVector(columnY);
-                    var meanY = yVector.ComputeMean();
-                    double sum = 0;
-                    for(int row = 0; row < NbRows; row++)
+                    var yVector = GetColumnVector(columnY);
+                    var meanY = yVector.Avg();
+                    Entity sum = 0;
+                    for (int row = 0; row < NbRows; row++)
                     {
                         var xValue = xVector[row];
                         var yValue = yVector[row];
@@ -387,16 +448,21 @@ namespace StatisticalLearning.Math
             return new Matrix(result);
         }
 
-        public Matrix ComputeCorrelation(bool unbiased = true)
+        /// <summary>
+        /// Calculate correlation.
+        /// </summary>
+        /// <param name="unbiased"></param>
+        /// <returns></returns>
+        public Matrix Correlation(bool unbiased = true)
         {
-            var result = ComputeCovariance();
-            for(int row = 0; row < result.NbRows; row++)
+            var result = Covariance();
+            for (int row = 0; row < result.NbRows; row++)
             {
-                var standardDeviationX = GetNumberColumnVector(row).ComputeStandardDeviation(unbiased);
-                for(int column = 0; column < result.NbColumns; column++)
+                var standardDeviationX = GetColumnVector(row).StandardDeviation(unbiased);
+                for (int column = 0; column < result.NbColumns; column++)
                 {
-                    var standardDeviationY = GetNumberColumnVector(column).ComputeStandardDeviation(unbiased);
-                    var value = result.GetNumberValue(row, column) / (standardDeviationX * standardDeviationY);
+                    var standardDeviationY = GetColumnVector(column).StandardDeviation(unbiased);
+                    var value = result.GetValue(row, column) / (standardDeviationX * standardDeviationY);
                     result.SetValue(row, column, value);
                 }
             }
@@ -404,34 +470,78 @@ namespace StatisticalLearning.Math
             return result;
         }
 
-        public void SwapLines(int fRow, int sRow)
+        /// <summary>
+        /// Calculate the determinant.
+        /// </summary>
+        /// <returns></returns>
+        public Entity Determinant()
         {
-            var fVector = GetRowVector(fRow).ToList();
-            var sVector = GetRowVector(sRow).ToList();
-            for(int column = 0; column < NbColumns; column++)
+            if (NbRows == 2)
             {
-                SetValue(fRow, column, sVector[column]);
-                SetValue(sRow, column, fVector[column]);
+                return GetValue(0, 0) * GetValue(1, 1) - GetValue(0, 1) * GetValue(1, 0);
             }
-        }
-
-        public Matrix Multiply(Entity[] entities)
-        {
-            var arr = new Entity[entities.Length][];
-            for(int row = 0; row < entities.Length; row++)
+            else if (NbRows > 2)
             {
-                arr[row] = new Entity[] { entities[row] };
+                int nbDeterminant = 1;
+                Entity result = null;
+                for (int column = 0; column < NbColumns; column++)
+                {
+                    var determinant = GetValue(0, column) * GetDeterminantMatrix(0, column).Determinant();
+                    if (result == null)
+                    {
+                        result = determinant;
+                    }
+                    else
+                    {
+                        if (nbDeterminant % 2 == 0)
+                        {
+                            result -= determinant;
+                        }
+                        else
+                        {
+                            result += determinant;
+                        }
+                    }
+
+                    nbDeterminant++;
+                }
+
+                return result;
             }
 
-            var tmp = new Matrix(arr);
-            return Multiply(tmp);
+            return GetValue(0, 0);
         }
 
-        public Matrix Multiply(double number)
+        /// <summary>
+        /// Sum all rows.
+        /// </summary>
+        /// <returns></returns>
+        public Vector SumAllRows()
         {
-            return Multiply(Number.Create(number));
+            var result = new Entity[NbRows];
+            for (int row = 0; row < NbRows; row++)
+            {
+                Entity record = 0.0;
+                for (int column = 0; column < NbColumns; column++)
+                {
+                    record = (record + GetValue(row, column)).Eval();
+                }
+
+                result[row] = record;
+            }
+
+            return result;
         }
 
+        #endregion
+
+        #region Operations on matrix
+
+        /// <summary>
+        /// Multiply a matrix by an entity.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         public Matrix Multiply(Entity entity)
         {
             var result = new Entity[NbRows][];
@@ -449,10 +559,15 @@ namespace StatisticalLearning.Math
             return new Matrix(result);
         }
 
+        /// <summary>
+        /// Multiply two matrix.
+        /// </summary>
+        /// <param name="matrix"></param>
+        /// <returns></returns>
         public Matrix Multiply(Matrix matrix)
         {
             var result = new Entity[NbRows][];
-            for(var row = 0; row < NbRows; row++)
+            for (var row = 0; row < NbRows; row++)
             {
                 var values = new Entity[matrix.NbColumns];
                 for (var targetColumn = 0; targetColumn < matrix.NbColumns; targetColumn++)
@@ -491,6 +606,40 @@ namespace StatisticalLearning.Math
             return new Matrix(result);
         }
 
+        /// <summary>
+        /// Multiply a matrix by a vector.
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <returns></returns>
+        public Matrix Multiply(Vector vector)
+        {
+            var result = new Entity[NbRows][];
+            for (int row = 0; row < NbRows; row++)
+            {
+                var record = new Entity[NbColumns];
+                for (int column = 0; column < NbColumns; column++)
+                {
+                    if (vector.Direction == VectorDirections.HORIZONTAL)
+                    {
+                        record[column] = vector[column] * GetValue(row, column);
+                    }
+                    else
+                    {
+                        record[column] = vector[row] * GetValue(row, column);
+                    }
+                }
+
+                result[row] = record;
+            }
+
+            return new Matrix(result);
+        }
+
+        /// <summary>
+        /// Substract two matrix.
+        /// </summary>
+        /// <param name="matrix"></param>
+        /// <returns></returns>
         public Matrix Substract(Matrix matrix)
         {
             var result = new Entity[NbRows][];
@@ -508,6 +657,11 @@ namespace StatisticalLearning.Math
             return new Matrix(result);
         }
 
+        /// <summary>
+        /// Sum two matrix.
+        /// </summary>
+        /// <param name="matrix"></param>
+        /// <returns></returns>
         public Matrix Sum(Matrix matrix)
         {
             var result = new Entity[NbRows][];
@@ -525,141 +679,7 @@ namespace StatisticalLearning.Math
             return new Matrix(result);
         }
 
-        public Matrix Solve()
-        {
-            for(var row = 0; row < NbRows; row++)
-            {
-                for(var column = 0; column < NbColumns; column++)
-                {
-                    var value = GetValue(row, column);
-                    SetValue(row, column, value.Eval());
-                }
-            }
-
-            return this;
-        }
-
-        public Entity GetValue(int row, int column)
-        {
-            return _arr[row][column];
-        }
-
-        public double GetNumberValue(int row, int column)
-        {
-            return (_arr[row][column].Eval() as NumberEntity).Number.Value;
-        }
-
-        public void SetValue(int row, int column, Entity entity)
-        {
-            _arr[row][column] = entity;
-        }
-
-        public void SetValue(int row, int column, double entity)
-        {
-            _arr[row][column] = Number.Create(entity);
-        }
-
-        public Entity[] GetColumnVector(int column)
-        {
-            var result = new Entity[NbRows];
-            for(var i = 0; i < NbRows; i++)
-            {
-                result[i] = _arr[i][column];
-            }
-
-            return result;
-        }
-
-        public double[] GetNumberColumnVector(int column)
-        {
-            var result = new double[NbRows];
-            for (var i = 0; i < NbRows; i++)
-            {
-                result[i] = GetNumberValue(i, column);
-            }
-
-            return result;
-        }
-
-        public Matrix GetSubMatrix(int row, int column)
-        {
-            int m = NbRows - row;
-            int n = NbColumns - column;
-            var arr = new double[m][];
-            for(int r = 0; r < m; r++)
-            {
-                arr[r] = new double[n];
-                for(int c = 0; c < n; c++)
-                {
-                    arr[r][c] = GetNumberValue(r + row, c + column);
-                }
-            }
-
-            return new Matrix(arr);
-        }
-
-        public void Replace(Matrix newMatrix, int row, int column)
-        {
-            for(int r = row; r < NbRows; r++)
-            {
-                for(int c = column; c < NbColumns; c++)
-                {
-                    SetValue(r, c, newMatrix.GetNumberValue(r - row, c - column));
-                }
-            }
-        }
-
-        public Entity[] GetRowVector(int row)
-        {
-            return _arr[row];
-        }
-
-        public double[] GetNumberRowVector(int row)
-        {
-            var result = new double[NbColumns];
-            for (var i = 0; i < NbColumns; i++)
-            {
-                result[i] = GetNumberValue(row, i);
-            }
-
-            return result;
-        }
-
-        public KeyValuePair<int, int>? FindPivotColumn(int rowIndex, int columnIndex)
-        {
-            for (int row = rowIndex; row < NbRows; row++)
-            {
-                var val = GetValue(row, columnIndex) as NumberEntity;
-                if (val == null || (val != null && val.Number.Value != 0))
-                {
-                    return new KeyValuePair<int, int>(row, columnIndex);
-                }
-            }
-
-            return null;
-        }
-
-        public int? FindPreviousNullRow(int currentRow)
-        {
-            for (int row = currentRow - 1; row >= 0; row--)
-            {
-                var rowVector = GetRowVector(row);
-                if (rowVector.All(_ =>
-                {
-                    if (_.IsNumberEntity(out NumberEntity numEnt))
-                    {
-                        return numEnt.Number.Value == 0;
-                    }
-
-                    return false;
-                }))
-                {
-                    return row;
-                }
-            }
-
-            return null;
-        }
+        #endregion
 
         public bool Equals(Matrix x)
         {
@@ -669,6 +689,37 @@ namespace StatisticalLearning.Math
             }
 
             return x.GetHashCode() == GetHashCode();
+        }
+
+        private Matrix GetDeterminantMatrix(int excludedRow, int excludedColumn)
+        {
+            var result = new Entity[NbRows - 1][];
+            int rowIndex = 0;
+            for (int row = 0; row < NbRows; row++)
+            {
+                if (row == excludedRow)
+                {
+                    continue;
+                }
+
+                var columns = new Entity[NbColumns - 1];
+                int columnIndex = 0;
+                for (int column = 0; column < NbColumns; column++)
+                {
+                    if (column == excludedColumn)
+                    {
+                        continue;
+                    }
+
+                    columns[columnIndex] = GetValue(row, column);
+                    columnIndex++;
+                }
+
+                result[rowIndex] = columns;
+                rowIndex++;
+            }
+
+            return new Matrix(result);
         }
 
         public override int GetHashCode()
@@ -682,15 +733,131 @@ namespace StatisticalLearning.Math
             for (var row = 0; row < NbRows; row++)
             {
                 var vector = GetRowVector(row);
-                lst.Add($"[ {string.Join(",", vector.Select(_ => _.ToString())) } ]");
+                lst.Add($"[ {string.Join(",", vector.Values.Select(_ => _.ToString())) } ]");
             }
 
             return $"[ {string.Join(",", lst.ToArray())} ]";
         }
 
+        #region Static methods
+
+        /// <summary>
+        /// Multiply two vectors to get a matrix.
+        /// </summary>
+        /// <param name="columnVector"></param>
+        /// <param name="rowVector"></param>
+        /// <returns></returns>
+        public static Matrix Multiply(Vector columnVector, Vector rowVector)
+        {
+            var arr = new Entity[columnVector.Length][];
+            for (int row = 0; row < columnVector.Length; row++)
+            {
+                arr[row] = new Entity[rowVector.Length];
+                for (int column = 0; column < rowVector.Length; column++)
+                {
+                    arr[row][column] = columnVector[row] * rowVector[column];
+                }
+            }
+
+            return new Matrix(arr);
+        }
+
+        /// <summary>
+        /// Build an identity matrix.
+        /// </summary>
+        /// <param name="nbRowColumn"></param>
+        /// <returns></returns>
+        public static Matrix BuildIdentityMatrix(int nbRowColumn)
+        {
+            var result = new Entity[nbRowColumn][];
+            for (var row = 0; row < nbRowColumn; row++)
+            {
+                var rowContent = new Entity[nbRowColumn];
+                for (var column = 0; column < nbRowColumn; column++)
+                {
+                    if (column == row)
+                    {
+                        rowContent[column] = 1;
+                    }
+                    else
+                    {
+                        rowContent[column] = 0;
+                    }
+                }
+
+                result[row] = rowContent;
+            }
+
+            return new Matrix(result);
+        }
+
+        /// <summary>
+        /// Build an identity matrix.
+        /// </summary>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public static Matrix BuildIdentityMatrix(Vector vector)
+        {
+            return BuildIdentityMatrix(vector.Values);
+        }
+
+        /// <summary>
+        /// Build an identity matrix.
+        /// </summary>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public static Matrix BuildIdentityMatrix(Entity[] values)
+        {
+            var arr = new Entity[values.Length][];
+            for (int i = 0; i < values.Length; i++)
+            {
+                var row = new Entity[values.Length];
+                for (int j = 0; j < values.Length; j++)
+                {
+                    if (i == j)
+                    {
+                        row[j] = values[i];
+                    }
+                    else
+                    {
+                        row[j] = 0.0;
+                    }
+                }
+
+                arr[i] = row;
+            }
+
+            return new Matrix(arr);
+        }
+
+        /// <summary>
+        /// Build an empty matrix.
+        /// </summary>
+        /// <param name="nbRow"></param>
+        /// <param name="nbColumn"></param>
+        /// <returns></returns>
+        public static Matrix BuildEmptyMatrix(int nbRow, int nbColumn)
+        {
+            var result = new Entity[nbRow][];
+            for (var row = 0; row < nbRow; row++)
+            {
+                var rowContent = new Entity[nbColumn];
+                for (var column = 0; column < nbColumn; column++)
+                {
+                    rowContent[column] = 0;
+                }
+
+                result[row] = rowContent;
+            }
+
+            return new Matrix(result);
+        }
+
+        #endregion
+
         public object Clone()
         {
-            return new Matrix(_arr.Select(_ => _.ToArray()).ToArray());
+            return new Matrix(_values.Select(_ => _.ToArray()).ToArray());
         }
     }
 }
