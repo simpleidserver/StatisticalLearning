@@ -5,12 +5,14 @@ import * as fromStatisticStates from './statistic/statistic-state';
 export interface AppState {
     simpleLinearRegression: fromStatisticStates.SimpleLinearRegressionState,
     multipleLinearRegression: fromStatisticStates.MultipleLinearRegressionState,
-    principalComponentAnalysis: fromStatisticStates.PrincipalComponentAnalysisState
+    principalComponentAnalysis: fromStatisticStates.PrincipalComponentAnalysisState,
+    logisticRegression: fromStatisticStates.LogisticRegressionState
 }
 
 export const selectSimpleLinearRegression = (state: AppState) => state.simpleLinearRegression;
 export const selectMultipleLinearRegression = (state: AppState) => state.multipleLinearRegression;
 export const selectPrincipalComponentAnalysis = (state: AppState) => state.principalComponentAnalysis;
+export const selectLogisticRegression = (state: AppState) => state.logisticRegression;
 
 export const selectSimpleLinearRegressionResult = createSelector(
     selectSimpleLinearRegression,
@@ -45,8 +47,20 @@ export const selectPrincipalComponentAnalysisResult = createSelector(
     }
 );
 
+export const selectLogisticRegressionResult = createSelector(
+    selectLogisticRegression,
+    (state: fromStatisticStates.LogisticRegressionState) => {
+        if (!state || state.content == null) {
+            return null;
+        }
+
+        return state.content;
+    }
+);
+
 export const appReducer = {
     simpleLinearRegression: fromStatisticReducers.SimpleLinearRegressionReducer,
     multipleLinearRegression: fromStatisticReducers.MultipleLinearRegressionReducer,
-    principalComponentAnalysis: fromStatisticReducers.PrincipalComponentAnalysisReducer
+    principalComponentAnalysis: fromStatisticReducers.PrincipalComponentAnalysisReducer,
+    logisticRegression: fromStatisticReducers.LogisticRegressionReducer
 };

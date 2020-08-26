@@ -15,21 +15,14 @@ import { StoreModule } from '@ngrx/store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { OAuthModule } from 'angular-oauth2-oidc';
-import { AppComponent, AuthPinDialog, InstallExtensionHelpDialog } from './app.component';
+import { AppComponent } from './app.component';
 import { routes } from './app.routes';
 import { HomeModule } from './home/home.module';
 import { MaterialModule } from './infrastructure/material.module';
-import { AddressService } from './infrastructure/services/address.service';
-import { AuthGuard } from './infrastructure/services/auth-guard.service';
-import { MedikitExtensionService } from './infrastructure/services/medikitextension.service';
 import { SharedModule } from './infrastructure/shared.module';
-import { ReferenceTableService } from './referencetable/services/reference-table-service';
 import { appReducer } from './stores/appstate';
-import { MedicinalProductService } from './stores/medicinalproduct/services/medicinalproduct-service';
-import { PatientEffects } from './stores/patient/patient-effects';
-import { PatientService } from './stores/patient/services/patient-service';
-import { PharmaPrescriptionEffects } from './stores/pharmaprescription/prescription-effects';
+import { StatisticEffects } from './stores/statistic/statistic-effects';
+import { StatisticService } from './stores/statistic/services/statistic-service';
 export function createTranslateLoader(http) {
     var url = process.env.BASE_URL + 'assets/i18n/';
     return new TranslateHttpLoader(http, url, '.json');
@@ -48,8 +41,7 @@ var AppModule = (function () {
                 FlexLayoutModule,
                 BrowserAnimationsModule,
                 HttpClientModule,
-                OAuthModule.forRoot(),
-                EffectsModule.forRoot([PatientEffects, PharmaPrescriptionEffects]),
+                EffectsModule.forRoot([StatisticEffects]),
                 StoreModule.forRoot(appReducer),
                 StoreDevtoolsModule.instrument({
                     maxAge: 10
@@ -63,11 +55,10 @@ var AppModule = (function () {
                 })
             ],
             declarations: [
-                AppComponent, AuthPinDialog, InstallExtensionHelpDialog
+                AppComponent
             ],
-            entryComponents: [AuthPinDialog, InstallExtensionHelpDialog],
             bootstrap: [AppComponent],
-            providers: [PatientService, MedicinalProductService, ReferenceTableService, MedikitExtensionService, AddressService, AuthGuard]
+            providers: [StatisticService]
         })
     ], AppModule);
     return AppModule;

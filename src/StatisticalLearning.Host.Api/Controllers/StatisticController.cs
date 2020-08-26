@@ -22,12 +22,12 @@ namespace StatisticalLearning.Api.Host.Controllers
             return new OkObjectResult(result.LinearRegression.ToDto());
         }
 
-        [HttpPost("regressions/linear")]
+        [HttpPost("regressions/logistic")]
         public IActionResult GetLogisticRegressionResult([FromBody] GetLogisticRegressionRequest request)
         {
             var logisticRegression = new LogisticRegression();
             logisticRegression.Regress(request.Inputs, request.Outputs);
-            return Ok();
+            return new OkObjectResult(logisticRegression.ToDto());
         }
 
         [HttpPost("analysis/pca")]

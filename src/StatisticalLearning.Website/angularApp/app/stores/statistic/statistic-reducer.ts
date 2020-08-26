@@ -1,5 +1,5 @@
 ﻿import * as fromActions from './statistic-actions';
-import { MultipleLinearRegressionState, SimpleLinearRegressionState, PrincipalComponentAnalysisState } from './statistic-state';
+import { LogisticRegressionState, MultipleLinearRegressionState, PrincipalComponentAnalysisState, SimpleLinearRegressionState } from './statistic-state';
 
 export const initialSimpleLinearRegressionState: SimpleLinearRegressionState = {
     content : null
@@ -10,6 +10,10 @@ export const initialMultipleLinearRegressionState: MultipleLinearRegressionState
 };
 
 export const initialPrincipalComponentAnalysisState: PrincipalComponentAnalysisState = {
+    content: null
+};
+
+export const initialLogisticRegressionState: LogisticRegressionState = {
     content: null
 };
 
@@ -37,6 +41,16 @@ export function PrincipalComponentAnalysisReducer(state = initialPrincipalCompon
     switch (action.type) {
         case fromActions.ActionTypes.PRINCIPAL_COMPONENT_LOADED:
             state.content = action.principalComponentAnalysis;
+            return { ...state };
+        default:
+            return state;
+    }
+}
+
+export function LogisticRegressionReducer(state = initialLogisticRegressionState, action: fromActions.ActionsUnion) {
+    switch (action.type) {
+        case fromActions.ActionTypes.LOGISTIC_REGRESSION_LOADED:
+            state.content = action.logisticRegression;
             return { ...state };
         default:
             return state;

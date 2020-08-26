@@ -31,5 +31,6 @@
   "1500m": "1500 m",
   "matrix": "Matrix",
   "info": "Information",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "logistic-regression": "Logistic regression"
 }

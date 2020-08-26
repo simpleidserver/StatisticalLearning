@@ -9,44 +9,44 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
-import * as fromActions from './patient-actions';
-export var initialListState = {
+import * as fromActions from './statistic-actions';
+export var initialSimpleLinearRegressionState = {
     content: null
 };
-export var initialListByNissState = {
+export var initialMultipleLinearRegressionState = {
     content: null
 };
-export var initialGetState = {
+export var initialPrincipalComponentAnalysisState = {
     content: null
 };
-export function ListPatientsReducer(state, action) {
-    if (state === void 0) { state = initialListState; }
+export function SimpleLinearRegressionReducer(state, action) {
+    if (state === void 0) { state = initialSimpleLinearRegressionState; }
     switch (action.type) {
-        case fromActions.ActionTypes.PATIENTS_LOADED:
-            state.content = action.patients;
+        case fromActions.ActionTypes.SIMPLE_LINEAR_REGRESSION_RESULT_LOADED:
+            state.content = action.simpleLinearRegressionResult;
             return __assign({}, state);
         default:
             return state;
     }
 }
-export function ListPatientsByNissReducer(state, action) {
-    if (state === void 0) { state = initialListByNissState; }
+export function MultipleLinearRegressionReducer(state, action) {
+    if (state === void 0) { state = initialMultipleLinearRegressionState; }
     switch (action.type) {
-        case fromActions.ActionTypes.PATIENTS_LOADED_BY_NISS:
-            state.content = action.patients;
+        case fromActions.ActionTypes.MULTIPLE_LINEAR_REGRESSION_RESULT_LOADED:
+            state.content = action.multipleLinearRegressionResult;
             return __assign({}, state);
         default:
             return state;
     }
 }
-export function GetPatientReducer(state, action) {
-    if (state === void 0) { state = initialGetState; }
+export function PrincipalComponentAnalysisReducer(state, action) {
+    if (state === void 0) { state = initialPrincipalComponentAnalysisState; }
     switch (action.type) {
-        case fromActions.ActionTypes.PATIENT_LOADED:
-            state.content = action.patient;
+        case fromActions.ActionTypes.PRINCIPAL_COMPONENT_LOADED:
+            state.content = action.principalComponentAnalysis;
             return __assign({}, state);
         default:
             return state;
     }
 }
-//# sourceMappingURL=patient-reducer.js.map
+//# sourceMappingURL=statistic-reducer.js.map

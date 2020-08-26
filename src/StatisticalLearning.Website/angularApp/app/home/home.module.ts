@@ -3,10 +3,11 @@ import { NgModule } from '@angular/core';
 import { MaterialModule } from '@app/infrastructure/material.module';
 import { SharedModule } from '@app/infrastructure/shared.module';
 import { HomeComponent } from './components/home.component';
-import { SimpleLinearRegressionComponent, SimpleLinearRegressionDialog } from './components/simplelinearegression/simplelinearegression.component';
+import { LogisticRegressionComponent, LogisticRegressionDialog } from './components/logisticregression/logisticregression.component';
 import { MultipleLinearRegressionComponent, MultipleLinearRegressionDialog } from './components/multiplelinearegression/multiplelinearegression.component';
+import { PrincipalComponentAnalysisComponent, PrincipalComponentAnalysisDialog } from './components/principalcomponentanalysis/principalcomponentanalysis.component';
+import { SimpleLinearRegressionComponent, SimpleLinearRegressionDialog } from './components/simplelinearegression/simplelinearegression.component';
 import { HomeRoutes } from './home.routes';
-import { PrincipalComponentAnalysisDialog, PrincipalComponentAnalysisComponent } from './components/principalcomponentanalysis/principalcomponentanalysis.component';
 
 @NgModule({
     imports: [
@@ -23,7 +24,9 @@ import { PrincipalComponentAnalysisDialog, PrincipalComponentAnalysisComponent }
         MultipleLinearRegressionComponent,
         MultipleLinearRegressionDialog,
         PrincipalComponentAnalysisDialog,
-        PrincipalComponentAnalysisComponent
+        PrincipalComponentAnalysisComponent,
+        LogisticRegressionDialog,
+        LogisticRegressionComponent
     ],
 
     exports: [
@@ -33,7 +36,8 @@ import { PrincipalComponentAnalysisDialog, PrincipalComponentAnalysisComponent }
     entryComponents: [
         SimpleLinearRegressionDialog,
         MultipleLinearRegressionDialog,
-        PrincipalComponentAnalysisDialog
+        PrincipalComponentAnalysisDialog,
+        LogisticRegressionDialog
     ],
 
     providers: [ ]

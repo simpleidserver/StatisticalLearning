@@ -48,6 +48,17 @@ namespace StatisticalLearning.Statistic.Regression
 
         public LinearRegressionResult LinearRegressionResult => _multipleLinearRegression.LinearRegression;
 
+        public Vector Transform(Matrix inputs)
+        {
+            var vector = new Vector(inputs.NbRows);
+            for(int row = 0; row < inputs.NbRows; row++)
+            {
+                vector[row] = Compute(inputs.GetRowVector(row).GetNumbers());
+            }
+
+            return vector;
+        }
+
         public double Compute(double[] input)
         {
             var lst = input.ToList();

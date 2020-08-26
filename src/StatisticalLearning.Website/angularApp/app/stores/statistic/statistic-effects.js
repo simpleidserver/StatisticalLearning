@@ -11,65 +11,51 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { of } from 'rxjs';
 import { catchError, map, mergeMap } from 'rxjs/operators';
-import { ActionTypes } from './patient-actions';
-import { PatientService } from './services/patient-service';
-var PatientEffects = (function () {
-    function PatientEffects(actions$, patientService) {
+import { StatisticService } from './services/statistic-service';
+import { ActionTypes } from './statistic-actions';
+var StatisticEffects = (function () {
+    function StatisticEffects(actions$, statisticService) {
         var _this = this;
         this.actions$ = actions$;
-        this.patientService = patientService;
-        this.searchPatients$ = this.actions$
-            .pipe(ofType(ActionTypes.SEARCH_PATIENTS), mergeMap(function (evt) {
-            return _this.patientService.search(evt.firstname, evt.lastname, evt.niss, evt.startIndex, evt.count, evt.active, evt.direction)
-                .pipe(map(function (patients) { return { type: ActionTypes.PATIENTS_LOADED, patients: patients }; }), catchError(function () { return of({ type: ActionTypes.ERROR_SEARCH_PATIENTS }); }));
+        this.statisticService = statisticService;
+        this.computeSimpleLinearRegression$ = this.actions$
+            .pipe(ofType(ActionTypes.COMPUTE_SIMPLE_LINEAR_REGRESSION), mergeMap(function (evt) {
+            var inputs = [];
+            evt.inputs.forEach(function (i) {
+                inputs.push([i]);
+            });
+            return _this.statisticService.computeSimpleLinearRegression(inputs, evt.outputs)
+                .pipe(map(function (simpleLinearRegressionResult) { return { type: ActionTypes.SIMPLE_LINEAR_REGRESSION_RESULT_LOADED, simpleLinearRegressionResult: simpleLinearRegressionResult }; }), catchError(function () { return of({ type: ActionTypes.ERROR_LOAD_SIMPLE_LINEAR_REGRESSION }); }));
         }));
-        this.searchPatientsByNiss$ = this.actions$
-            .pipe(ofType(ActionTypes.SEARCH_PATIENTS_BY_NISS), mergeMap(function (evt) {
-            return _this.patientService.search(null, null, evt.niss, 0, 0)
-                .pipe(map(function (patients) { return { type: ActionTypes.PATIENTS_LOADED_BY_NISS, patients: patients }; }), catchError(function () { return of({ type: ActionTypes.ERROR_SEARCH_PATIENTS_BY_NISS }); }));
+        this.computeMultipleLinearRegression$ = this.actions$
+            .pipe(ofType(ActionTypes.COMPUTE_MULTIPLE_LINEAR_REGRESSION), mergeMap(function (evt) {
+            return _this.statisticService.computeSimpleLinearRegression(evt.inputs, evt.outputs)
+                .pipe(map(function (multipleLinearRegressionResult) { return { type: ActionTypes.MULTIPLE_LINEAR_REGRESSION_RESULT_LOADED, multipleLinearRegressionResult: multipleLinearRegressionResult }; }), catchError(function () { return of({ type: ActionTypes.ERROR_LOAD_MULTIPLE_LINEAR_REGRESSION }); }));
         }));
-        this.getPatientById$ = this.actions$
-            .pipe(ofType(ActionTypes.GET_PATIENT_BY_ID), mergeMap(function (evt) {
-            return _this.patientService.getById(evt.id)
-                .pipe(map(function (patient) { return { type: ActionTypes.PATIENT_LOADED, patient: patient }; }), catchError(function () { return of({ type: ActionTypes.ERROR_GET_PATIENT }); }));
-        }));
-        this.getPatientByNiss$ = this.actions$
-            .pipe(ofType(ActionTypes.GET_PATIENT_BY_NISS), mergeMap(function (evt) {
-            return _this.patientService.getByNiss(evt.niss)
-                .pipe(map(function (patient) { return { type: ActionTypes.PATIENT_LOADED, patient: patient }; }), catchError(function () { return of({ type: ActionTypes.ERROR_GET_PATIENT }); }));
-        }));
-        this.addPatient$ = this.actions$
-            .pipe(ofType(ActionTypes.ADD_PATIENT), mergeMap(function (evt) {
-            return _this.patientService.add(evt.patient)
-                .pipe(map(function () { return { type: ActionTypes.ADD_PATIENT_SUCCESS }; }), catchError(function () { return of({ type: ActionTypes.ADD_PATIENT_ERROR }); }));
+        this.computePrincipalComponentAnalysis$ = this.actions$
+            .pipe(ofType(ActionTypes.COMPUTE_PRINCIPAL_COMPONENT_ANALYSIS), mergeMap(function (evt) {
+            return _this.statisticService.computePrincipalComponentAnalysis(evt.inputs)
+                .pipe(map(function (principalComponentAnalysis) { return { type: ActionTypes.PRINCIPAL_COMPONENT_LOADED, principalComponentAnalysis: principalComponentAnalysis }; }), catchError(function () { return of({ type: ActionTypes.ERROR_LOAD_PRINCIPAL_COMPONENT_ANALYSIS }); }));
         }));
     }
     __decorate([
         Effect(),
         __metadata("design:type", Object)
-    ], PatientEffects.prototype, "searchPatients$", void 0);
+    ], StatisticEffects.prototype, "computeSimpleLinearRegression$", void 0);
     __decorate([
         Effect(),
         __metadata("design:type", Object)
-    ], PatientEffects.prototype, "searchPatientsByNiss$", void 0);
+    ], StatisticEffects.prototype, "computeMultipleLinearRegression$", void 0);
     __decorate([
         Effect(),
         __metadata("design:type", Object)
-    ], PatientEffects.prototype, "getPatientById$", void 0);
-    __decorate([
-        Effect(),
-        __metadata("design:type", Object)
-    ], PatientEffects.prototype, "getPatientByNiss$", void 0);
-    __decorate([
-        Effect(),
-        __metadata("design:type", Object)
-    ], PatientEffects.prototype, "addPatient$", void 0);
-    PatientEffects = __decorate([
+    ], StatisticEffects.prototype, "computePrincipalComponentAnalysis$", void 0);
+    StatisticEffects = __decorate([
         Injectable(),
         __metadata("design:paramtypes", [Actions,
-            PatientService])
-    ], PatientEffects);
-    return PatientEffects;
+            StatisticService])
+    ], StatisticEffects);
+    return StatisticEffects;
 }());
-export { PatientEffects };
-//# sourceMappingURL=patient-effects.js.map
+export { StatisticEffects };
+//# sourceMappingURL=statistic-effects.js.map

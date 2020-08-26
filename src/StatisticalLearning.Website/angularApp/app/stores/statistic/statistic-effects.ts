@@ -3,7 +3,7 @@ import { Actions, Effect, ofType } from '@ngrx/effects';
 import { of } from 'rxjs';
 import { catchError, map, mergeMap } from 'rxjs/operators';
 import { StatisticService } from './services/statistic-service';
-import { ActionTypes, ComputeMultipleLinearRegression, ComputeSimpleLinearRegression, ComputePrincipalComponentAnalysis } from './statistic-actions';
+import { ActionTypes, ComputeLogisticRegression, ComputeMultipleLinearRegression, ComputePrincipalComponentAnalysis, ComputeSimpleLinearRegression } from './statistic-actions';
 
 @Injectable()
 export class StatisticEffects {
@@ -17,7 +17,7 @@ export class StatisticEffects {
         .pipe(
             ofType(ActionTypes.COMPUTE_SIMPLE_LINEAR_REGRESSION),
             mergeMap((evt: ComputeSimpleLinearRegression) => {
-                var inputs : any = [];
+                const inputs: any[] = [];
                 evt.inputs.forEach(function (i: number) {
                     inputs.push([i]);
                 });
@@ -56,5 +56,20 @@ export class StatisticEffects {
                     );
             }
             )
+    );
+
+    @Effect()
+    computeLogisticRegression$ = this.actions$
+        .pipe(
+            ofType(ActionTypes.COMPUTE_LOGISTIC_REGRESSION),
+            mergeMap((evt: ComputeLogisticRegression) => {
+                return this.statisticService.computeLogisticRegression(evt.inputs, evt.outputs)
+                    .pipe(
+                        map(logisticRegression => { return { type: ActionTypes.LOGISTIC_REGRESSION_LOADED, logisticRegression: logisticRegression }; }),
+                        catchError(() => of({ type: ActionTypes.ERROR_LOAD_LOGISTIC_REGRESSION }))
+                    );
+            }
+            )
         );
+
 }
