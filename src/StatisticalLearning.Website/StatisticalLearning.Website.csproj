@@ -11,6 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="angularApp\app\stores\statistic\models\coefficient.result.ts" />
+    <None Remove="angularApp\app\stores\statistic\models\gaussian-naivebayes.result.ts" />
     <None Remove="angularApp\app\stores\statistic\models\linear-regression.result.ts" />
     <None Remove="angularApp\app\stores\statistic\models\logistic-regression.result.ts" />
     <None Remove="angularApp\app\stores\statistic\models\pca.result.ts" />
@@ -22,6 +23,9 @@
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="angularApp\app\stores\statistic\models\gaussian-naivebayes.result.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="angularApp\app\stores\statistic\models\logistic-regression.result.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>

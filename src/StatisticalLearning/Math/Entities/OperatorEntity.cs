@@ -81,7 +81,18 @@ namespace StatisticalLearning.Math.Entities
 
         public override int CompareTo(object obj)
         {
-            throw new NotImplementedException();
+            return -1;
+        }
+
+        public override int GetHashCode()
+        {
+            var result = Name.GetHashCode() + Value.GetHashCode();
+            foreach (var child in Children)
+            {
+                result += child.GetHashCode();
+            }
+
+            return result;
         }
 
         public override string ToString()

@@ -5,6 +5,12 @@ namespace StatisticalLearning.Math.Entities
 {
     public static class MathEntity
     {
+        public static Entity Log(Entity entity)
+        {
+            var result = new FuncEntity(Constants.Funcs.LOG, entity);
+            return result;
+        }
+
         public static Entity Exp(Entity entity)
         {
             var result = new FuncEntity(Constants.Funcs.EXP, entity);

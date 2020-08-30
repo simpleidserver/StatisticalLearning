@@ -32,5 +32,8 @@
   "matrix": "Matrix",
   "info": "Information",
   "cancel": "Cancel",
-  "logistic-regression": "Logistic regression"
+  "logistic-regression": "Logistic regression",
+  "gaussian-naivebayes": "Gaussian Naive Bayes Classifier",
+  "probabilities": "Probabilities",
+  "data": "Data"
 }

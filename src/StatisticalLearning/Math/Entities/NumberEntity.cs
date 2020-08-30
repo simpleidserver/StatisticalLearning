@@ -42,7 +42,6 @@ namespace StatisticalLearning.Math.Entities
 
             return a.Number.Value <= b.Number.Value;
         }
-
         public static bool operator <(NumberEntity a, NumberEntity b)
         {
             if (a == null || b == null)
@@ -52,7 +51,6 @@ namespace StatisticalLearning.Math.Entities
 
             return a.Number.Value <= b.Number.Value;
         }
-
         public static bool operator >=(NumberEntity a, NumberEntity b)
         {
             if (a == null || b == null)
@@ -62,7 +60,6 @@ namespace StatisticalLearning.Math.Entities
 
             return a.Number.Value >= b.Number.Value;
         }
-
         public static bool operator >(NumberEntity a, NumberEntity b)
         {
             if (a == null || b == null)
@@ -89,6 +86,11 @@ namespace StatisticalLearning.Math.Entities
             }
 
             return Number.Value.CompareTo(source.Number.Value);
+        }
+
+        public override int GetHashCode()
+        {
+            return Number.GetHashCode();
         }
 
 

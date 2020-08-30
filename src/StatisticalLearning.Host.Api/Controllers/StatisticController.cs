@@ -5,6 +5,7 @@ using StatisticalLearning.Api.Host.DTOs.Requests;
 using StatisticalLearning.Api.Host.DTOs.Responses;
 using StatisticalLearning.Api.Host.Extensions;
 using StatisticalLearning.Statistic.Analysis;
+using StatisticalLearning.Statistic.Probability.Classifier;
 using StatisticalLearning.Statistic.Probability.Repartition;
 using StatisticalLearning.Statistic.Regression;
 using System.Linq;
@@ -28,6 +29,20 @@ namespace StatisticalLearning.Api.Host.Controllers
             var logisticRegression = new LogisticRegression();
             logisticRegression.Regress(request.Inputs, request.Outputs);
             return new OkObjectResult(logisticRegression.ToDto());
+        }
+
+        [HttpPost("classifiers/gaussiannaivebayes")]
+        public IActionResult GetGaussianNaiveBayesResult([FromBody] GetGaussianNaiveBayesRequest request)
+        {
+            var bayes = new GaussianNaiveBayes();
+            bayes.Estimate(request.Inputs, request.Outputs);
+            var result = bayes.PredictProbability(request.Predict);
+            var prediction = bayes.Predict(request.Predict);
+            return new OkObjectResult(new GaussianNaiveBayesResult
+            {
+                Classes = prediction.GetNumbers(),
+                Probabilities = result.DoubleValues
+            });
         }
 
         [HttpPost("analysis/pca")]

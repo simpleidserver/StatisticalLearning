@@ -6,12 +6,12 @@ using System.Linq;
 
 namespace StatisticalLearning.Math.Entities
 {
-    public abstract class Entity : IComparable
+    public abstract class Entity : IEquatable<Entity>, IComparable<object>
     {
         public static implicit operator Entity(Number number) => new NumberEntity(number);
         public static implicit operator Entity(int number) => new NumberEntity(Number.Create(number));
         public static implicit operator Entity(double number) => new NumberEntity(Number.Create(number));
-        public static implicit operator Entity(string name) => new VariableEntity(name);
+        public static implicit operator Entity(string name) => new StringEntity(name);
 
         public static Entity operator +(Entity a, Entity b)
         {
@@ -60,6 +60,11 @@ namespace StatisticalLearning.Math.Entities
             if (a.IsNumberEntity(out NumberEntity na) && b.IsNumberEntity(out NumberEntity nb))
             {
                 return na == nb;
+            }
+
+            if (a.IsStringEntity(out StringEntity sa) && b.IsStringEntity(out StringEntity sb))
+            {
+                return sa == sb;
             }
 
             return false;
@@ -357,7 +362,13 @@ namespace StatisticalLearning.Math.Entities
         public bool IsNumberEntity(out NumberEntity result)
         {
             result = this as NumberEntity;
-            return result != null;                
+            return result != null;
+        }
+
+        public bool IsStringEntity(out StringEntity result)
+        {
+            result = this as StringEntity;
+            return result != null;
         }
 
         public bool IsVariableEntity(out VariableEntity result)
@@ -397,6 +408,16 @@ namespace StatisticalLearning.Math.Entities
         }
 
         public abstract int CompareTo(object obj);
+
+        public abstract override int GetHashCode();
+
+        public bool Equals(Entity other)
+        {
+            if (Object.ReferenceEquals(other, null)) return false;
+            if (Object.ReferenceEquals(this, other)) return true;
+            var result = this.GetHashCode().Equals(other.GetHashCode());
+            return result;
+        }
 
         protected void GetVariables(VariableEntity variable, ICollection<VariableEntity> result)
         {

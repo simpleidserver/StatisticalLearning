@@ -22,6 +22,7 @@ namespace StatisticalLearning
             public const string COS = "cos";
             public const string ABS = "abs";
             public const string EXP = "exp";
+            public const string LOG = "log";
         }
 
         public static Dictionary<string, string> MappingOperatorToSign = new Dictionary<string, string>

@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 using StatisticalLearning.Math.Entities;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace StatisticalLearning.Math
 {
@@ -23,6 +25,16 @@ namespace StatisticalLearning.Math
 
             return new Vector(arr);
         }
+        public static implicit operator Vector(string[] values)
+        {
+            Entity[] arr = new Entity[values.Length];
+            for (int row = 0; row < values.Length; row++)
+            {
+                arr[row] = values[row];
+            }
+
+            return new Vector(arr);
+        }
 
         public Vector(int length)
         {
@@ -37,7 +49,6 @@ namespace StatisticalLearning.Math
 
         public int Length => _values.Length;
         public VectorDirections Direction => _direction;
-
         public Entity[] Values => _values;
 
         public Entity this[int key]
@@ -57,12 +68,79 @@ namespace StatisticalLearning.Math
             return result;
         }
 
+        public int[] FindIndexes(Entity value)
+        {
+            var result = new List<int>();
+            for(int i = 0; i < Values.Count(); i++)
+            {
+                var number = Values[i];
+                if (number.Equals(value))
+                {
+                    result.Add(i);
+                }
+            }
+
+            return result.ToArray();
+        }
+
+        public Vector Find(int[] indexes)
+        {
+            var result = new List<Entity>();
+            for (int i = 0; i < indexes.Length; i++)
+            {
+                result.Add(Values[indexes[i]]);
+            }
+
+            return result.ToArray();
+        }
+
+        public Vector Except(int[] indexes)
+        {
+            var result = new List<Entity>();
+            for (int i = 0; i < indexes.Length; i++)
+            {
+                if (!indexes.Contains(i))
+                {
+                    result.Add(Values[indexes[i]]);
+                }
+            }
+
+            return result.ToArray();
+        }
+
+        public Vector Distinct()
+        {
+            var result = _values.Distinct().ToArray();
+            return result;
+        }
+
+        public int Count()
+        {
+            return Length;
+        }
+
+        public int Count(double val)
+        {
+            return GetNumbers().Where(_ => _ == val).Count();
+        }
+
         public Vector Abs()
         {
             var result = new Entity[Length];
             for (int i = 0; i < Length; i++)
             {
                 result[i] = MathEntity.Abs(this[i]).Eval();
+            }
+
+            return new Vector(result);
+        }
+
+        public Vector Log()
+        {
+            var result = new Entity[Length];
+            for (int i = 0; i < Length; i++)
+            {
+                result[i] = MathEntity.Log(this[i]).Eval();
             }
 
             return new Vector(result);
@@ -79,12 +157,44 @@ namespace StatisticalLearning.Math
             return new Vector(result);
         }
 
+        /// <summary>
+        /// Substract the vector by an entity.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public Vector Substract(Entity entity)
+        {
+            var result = new Entity[Length];
+            for (int i = 0; i < Length; i++)
+            {
+                result[i] = (this[i] - entity).Eval();
+            }
+
+            return new Vector(result);
+        }
+
         public Vector Sum(Vector vector)
         {
             var result = new Entity[vector.Length];
             for (int i = 0; i < vector.Length; i++)
             {
                 result[i] = (this[i] + vector[i]).Eval();
+            }
+
+            return new Vector(result);
+        }
+
+        /// <summary>
+        /// Sum the vector by an entity.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public Vector Sum(Entity entity)
+        {
+            var result = new Entity[Length];
+            for (int i = 0; i < Length; i++)
+            {
+                result[i] = (this[i] + entity).Eval();
             }
 
             return new Vector(result);
@@ -101,6 +211,17 @@ namespace StatisticalLearning.Math
             return new Vector(result);
         }
 
+        public Vector Multiply(Entity entity)
+        {
+            var result = new Entity[Length];
+            for(int i = 0; i < Length; i++)
+            {
+                result[i] = (this[i] * entity).Eval();
+            }
+
+            return result;
+        }
+
         public Vector Transform(Func<Entity, Entity> callback)
         {
             var result = new Entity[Length];
@@ -112,18 +233,20 @@ namespace StatisticalLearning.Math
             return new Vector(result);
         }
 
-        public Entity Max()
+        public KeyValuePair<Entity, int> Max()
         {
             Entity result = 0.0;
+            int index = 0;
             for (int i = 0; i < Length; i++)
             {
                 if (this[i] >= result)
                 {
                     result = this[i];
+                    index = i;
                 }
             }
 
-            return result;
+            return new KeyValuePair<Entity, int>(result, index);
         }
 
         /// <summary>
@@ -141,8 +264,18 @@ namespace StatisticalLearning.Math
             return (totalSum / _values.Length).Eval().GetNumber();
         }
 
+        public double Variance(bool isSample = false)
+        {
+            if (isSample)
+            {
+                return SumOfSquares() / (Length - 1);
+            }
+
+            return SumOfSquares() / Length;
+        }
+
         /// <summary>
-        /// Σ(xi2)-(Σ xi)2/n
+        /// Σ(xi2)-(Σ xi)2/n - Variance
         /// </summary>
         /// <returns></returns>
         public double SumOfSquares()
@@ -161,7 +294,8 @@ namespace StatisticalLearning.Math
             Entity result = 0;
             foreach (var value in _values)
             {
-                result += MathEntity.Pow((value - avg), 2);
+                var t = (value - avg).Eval();
+                result = (result + MathEntity.Pow(t, 2)).Eval();
             }
 
             return result.Eval().GetNumber();
@@ -187,6 +321,17 @@ namespace StatisticalLearning.Math
             }
 
             return MathEntity.Sqrt(sum / (_values.Length)).Eval().GetNumber();
+        }
+
+        public Entity Sum()
+        {
+            Entity result = 0.0;
+            for (int i = 0; i < _values.Length; i++)
+            {
+                result = result + _values[i];
+            }
+
+            return result.Eval();
         }
 
         public Entity Sum(Func<Entity, Entity> callback)
@@ -246,6 +391,12 @@ namespace StatisticalLearning.Math
             {
                 _values[i] = 0;
             }
+        }
+
+        public override string ToString()
+        {
+            var result = string.Join(",", Values.Select(_ => _.ToString()));
+            return $"[ {result} ]";
         }
     }
 }

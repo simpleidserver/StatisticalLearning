@@ -2,6 +2,7 @@ import { Action } from '@ngrx/store';
 import { LinearRegressionResult } from './models/linear-regression.result';
 import { PrincipalComponentAnalysisResult } from './models/pca.result';
 import { LogisticRegressionResult } from './models/logistic-regression.result';
+import { GaussianNaiveBayesResult } from './models/gaussian-naivebayes.result';
 
 export enum ActionTypes {
     COMPUTE_SIMPLE_LINEAR_REGRESSION = "[Statistic] COMPUTE_SIMPLE_LINEAR_REGRESSION",
@@ -15,7 +16,10 @@ export enum ActionTypes {
     ERROR_LOAD_PRINCIPAL_COMPONENT_ANALYSIS = "[Statistic] ERROR_LOAD_PRINCIPAL_COMPONENT_ANALYSIS",
     COMPUTE_LOGISTIC_REGRESSION = "[Statistic] COMPUTE_LOGISTIC_REGRESSION",
     LOGISTIC_REGRESSION_LOADED = "[Statistic] LOGISTIC_REGRESSION_LOADED",
-    ERROR_LOAD_LOGISTIC_REGRESSION = "[Statistic] ERROR_LOAD_LOGISTIC_REGRESSION"
+    ERROR_LOAD_LOGISTIC_REGRESSION = "[Statistic] ERROR_LOAD_LOGISTIC_REGRESSION",
+    COMPUTE_GAUSSIAN_NAIVEBAYES = "[Statistic] COMPUTE_GAUSSIAN_NAIVEBAYES",
+    GAUSSIAN_NAIVEBAYES_LOADED = "[Statistic] GAUSSIAN_NAIVEBAYES_LOADED",
+    ERROR_LOAD_GAUSSIAN_NAIVEBAYES = "[Statistic] ERROR_LOAD_GAUSSIAN_NAIVEBAYES"
 }
 
 export class ComputeSimpleLinearRegression implements Action {
@@ -58,6 +62,16 @@ export class LogisticRegressionLoaded implements Action {
     constructor(public logisticRegression: LogisticRegressionResult) { }
 }
 
+export class ComputeGaussianNaiveBayes implements Action {
+    readonly type = ActionTypes.COMPUTE_GAUSSIAN_NAIVEBAYES;
+    constructor(public inputs: number[][], public predict : number[], public outputs: number[]) { }
+}
+
+export class GaussianNaiveBayesLoaded implements Action {
+    readonly type = ActionTypes.GAUSSIAN_NAIVEBAYES_LOADED;
+    constructor(public gaussianNaiveBayes: GaussianNaiveBayesResult) { }
+}
+
 export type ActionsUnion =
     ComputeSimpleLinearRegression |
     SimpleLinearRegressionLoaded | 
@@ -66,4 +80,6 @@ export type ActionsUnion =
     ComputePrincipalComponentAnalysis |
     PrincipalComponentLoaded |
     ComputeLogisticRegression |
-    LogisticRegressionLoaded;
+    LogisticRegressionLoaded |
+    ComputeGaussianNaiveBayes |
+    GaussianNaiveBayesLoaded;

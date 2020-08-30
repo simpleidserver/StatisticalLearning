@@ -8,6 +8,7 @@ import { MultipleLinearRegressionComponent, MultipleLinearRegressionDialog } fro
 import { PrincipalComponentAnalysisComponent, PrincipalComponentAnalysisDialog } from './components/principalcomponentanalysis/principalcomponentanalysis.component';
 import { SimpleLinearRegressionComponent, SimpleLinearRegressionDialog } from './components/simplelinearegression/simplelinearegression.component';
 import { HomeRoutes } from './home.routes';
+import { GaussianNaiveBayesComponent } from './components/gaussianaivebayes/gaussianaivebayes.component';
 
 @NgModule({
     imports: [
@@ -26,7 +27,8 @@ import { HomeRoutes } from './home.routes';
         PrincipalComponentAnalysisDialog,
         PrincipalComponentAnalysisComponent,
         LogisticRegressionDialog,
-        LogisticRegressionComponent
+        LogisticRegressionComponent,
+        GaussianNaiveBayesComponent
     ],
 
     exports: [

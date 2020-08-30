@@ -4,6 +4,7 @@ import { Observable } from "rxjs";
 import { LinearRegressionResult } from "../models/linear-regression.result";
 import { PrincipalComponentAnalysisResult } from "../models/pca.result";
 import { LogisticRegressionResult } from "../models/logistic-regression.result";
+import { GaussianNaiveBayesResult } from '../models/gaussian-naivebayes.result';
 
 @Injectable({
     providedIn: 'root'
@@ -36,5 +37,14 @@ export class StatisticService {
         headers = headers.set('Accept', 'application/json');
         headers = headers.set('Content-Type', 'application/json');
         return this.http.post<LogisticRegressionResult>(targetUrl, request, { headers: headers });
+    }
+
+    computeGaussianNaiveBayes(inputs: number[][], predict: number[], outputs: number[]) : Observable<GaussianNaiveBayesResult> {
+        const request = JSON.stringify({ inputs: inputs, outputs: outputs, predict : predict });
+        let headers = new HttpHeaders();
+        const targetUrl = process.env.API_URL + "/statistic/classifiers/gaussiannaivebayes";
+        headers = headers.set('Accept', 'application/json');
+        headers = headers.set('Content-Type', 'application/json');
+        return this.http.post<GaussianNaiveBayesResult>(targetUrl, request, { headers: headers });
     }
 }

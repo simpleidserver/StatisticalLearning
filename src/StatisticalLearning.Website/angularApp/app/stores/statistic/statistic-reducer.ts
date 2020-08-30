@@ -1,5 +1,5 @@
 ﻿import * as fromActions from './statistic-actions';
-import { LogisticRegressionState, MultipleLinearRegressionState, PrincipalComponentAnalysisState, SimpleLinearRegressionState } from './statistic-state';
+import { LogisticRegressionState, GaussianNaiveBayesState, MultipleLinearRegressionState, PrincipalComponentAnalysisState, SimpleLinearRegressionState } from './statistic-state';
 
 export const initialSimpleLinearRegressionState: SimpleLinearRegressionState = {
     content : null
@@ -14,6 +14,10 @@ export const initialPrincipalComponentAnalysisState: PrincipalComponentAnalysisS
 };
 
 export const initialLogisticRegressionState: LogisticRegressionState = {
+    content: null
+};
+
+export const initialGaussianNaiveBayesState: GaussianNaiveBayesState = {
     content: null
 };
 
@@ -51,6 +55,16 @@ export function LogisticRegressionReducer(state = initialLogisticRegressionState
     switch (action.type) {
         case fromActions.ActionTypes.LOGISTIC_REGRESSION_LOADED:
             state.content = action.logisticRegression;
+            return { ...state };
+        default:
+            return state;
+    }
+}
+
+export function GaussianNaiveBayesReducer(state = initialGaussianNaiveBayesState, action: fromActions.ActionsUnion) {
+    switch (action.type) {
+        case fromActions.ActionTypes.GAUSSIAN_NAIVEBAYES_LOADED:
+            state.content = action.gaussianNaiveBayes;
             return { ...state };
         default:
             return state;

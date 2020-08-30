@@ -24,6 +24,11 @@ namespace StatisticalLearning.Math
         public static Number operator +(Number a, Number b) => new Number(a.Value + b.Value);
         public static Number operator -(Number a, Number b) => new Number(a.Value - b.Value);
 
+        public override int GetHashCode()
+        {
+            return Value.GetHashCode();
+        }
+
         public override string ToString()
         {
             return Value.ToString();

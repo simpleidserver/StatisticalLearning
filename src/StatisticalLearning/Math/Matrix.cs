@@ -3,6 +3,7 @@
 using StatisticalLearning.Math.Entities;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 
 namespace StatisticalLearning.Math
@@ -13,6 +14,20 @@ namespace StatisticalLearning.Math
         public static implicit operator Matrix(Vector vector)
         {
             return new Matrix(vector);
+        }
+        public static implicit operator Matrix(string[][] values)
+        {
+            var arr = new Entity[values.Length][];
+            for (int row = 0; row < values.Length; row++)
+            {
+                arr[row] = new Entity[values[0].Length];
+                for (int column = 0; column < values[0].Length; column++)
+                {
+                    arr[row][column] = values[row][column];
+                }
+            }
+
+            return new Matrix(arr);
         }
         public static implicit operator Matrix(double[][] values)
         {
@@ -31,6 +46,10 @@ namespace StatisticalLearning.Math
         public static implicit operator Matrix(Entity[][] values)
         {
             return new Matrix(values);
+        }
+        public static implicit operator Matrix(Vector[] rows)
+        {
+            return new Matrix(rows);
         }
         public static Matrix operator *(Matrix a, Matrix b) => a.Multiply(b);
         public static Matrix operator -(Matrix a, Matrix b) => a.Substract(b);
@@ -64,6 +83,11 @@ namespace StatisticalLearning.Math
             }
 
             _values = values;
+        }
+
+        public Matrix(Vector[] rows)
+        {
+            _values = rows.Select(_ => _.Values).ToArray();
         }
 
         public Entity[][] Values => _values;
@@ -142,6 +166,19 @@ namespace StatisticalLearning.Math
         public Vector GetRowVector(int row)
         {
             return _values[row];
+        }
+
+        public Matrix GetRows(int[] rows)
+        {
+            var arr = new double[rows.Count()][];
+            int i = 0;
+            foreach(var row in rows)
+            {
+                arr[i] = GetRowVector(row).GetNumbers();
+                i++;
+            }
+
+            return arr;
         }
 
         public Matrix GetSubMatrix(int row, int column)
@@ -271,6 +308,14 @@ namespace StatisticalLearning.Math
             }
         }
 
+        public void SetRow(Vector vector, int row)
+        {
+            for(int column = 0; column < NbColumns; column++)
+            {
+                SetValue(row, column, vector.Values[column]);
+            }
+        }
+
         #endregion
 
         #region Transform matrix
@@ -357,6 +402,39 @@ namespace StatisticalLearning.Math
         #endregion
 
         #region Calculation on matrix
+
+        public Vector Avg()
+        {
+            var result = new Vector(NbColumns);
+            for(int i = 0; i < NbColumns; i++)
+            {
+                result[i] = GetColumnVector(i).Avg();
+            }
+
+            return result;
+        }
+
+        public Vector Variance(bool isSample = false)
+        {
+            var result = new Vector(NbColumns);
+            for (int i = 0; i < NbColumns; i++)
+            {
+                result[i] = GetColumnVector(i).Variance(isSample);
+            }
+
+            return result;
+        }
+
+        public Vector SumOfSquare()
+        {
+            var result = new Vector(NbColumns);
+            for (int i = 0; i < NbColumns; i++)
+            {
+                result[i] = GetColumnVector(i).SumOfSquares();
+            }
+
+            return result;
+        }
 
         /// <summary>
         /// Calculate centered mean matrix.
@@ -636,6 +714,28 @@ namespace StatisticalLearning.Math
         }
 
         /// <summary>
+        /// Divide the matrix by a vector.
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <returns></returns>
+        public Matrix Div(Vector vector)
+        {
+            var result = new Entity[NbRows][];
+            for (var row = 0; row < NbRows; row++)
+            {
+                var values = new Entity[NbColumns];
+                for (var column = 0; column < NbColumns; column++)
+                {
+                    values[column] = GetValue(row, column) / vector[column];
+                }
+
+                result[row] = values;
+            }
+
+            return new Matrix(result).Evaluate();
+        }
+
+        /// <summary>
         /// Substract two matrix.
         /// </summary>
         /// <param name="matrix"></param>
@@ -658,6 +758,62 @@ namespace StatisticalLearning.Math
         }
 
         /// <summary>
+        /// Substract the matrix with a vector.
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <returns></returns>
+        public Matrix Substract(Vector vector)
+        {
+            if (vector.Length == 1)
+            {
+                return Substract(vector.Values[0]);
+            }
+
+            var result = new Entity[NbRows][];
+            for (int row = 0; row < NbRows; row++)
+            {
+                var record = new Entity[NbColumns];
+                for (int column = 0; column < NbColumns; column++)
+                {
+                    if (vector.Direction == VectorDirections.HORIZONTAL)
+                    {
+                        record[column] = GetValue(row, column) - vector[column];
+                    }
+                    else
+                    {
+                        record[column] = GetValue(row, column) - vector[row];
+                    }
+                }
+
+                result[row] = record;
+            }
+
+            return new Matrix(result).Evaluate();
+        }
+
+        /// <summary>
+        /// Substract the matrix with an entity.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public Matrix Substract(Entity entity)
+        {
+            var result = new Entity[NbRows][];
+            for (int row = 0; row < NbRows; row++)
+            {
+                var record = new Entity[NbColumns];
+                for (int column = 0; column < NbColumns; column++)
+                {
+                    record[column] = GetValue(row, column) - entity;
+                }
+
+                result[row] = record;
+            }
+
+            return new Matrix(result).Evaluate();
+        }
+
+        /// <summary>
         /// Sum two matrix.
         /// </summary>
         /// <param name="matrix"></param>
@@ -677,6 +833,80 @@ namespace StatisticalLearning.Math
             }
 
             return new Matrix(result);
+        }
+
+        /// <summary>
+        /// Sum the matrix with an entity.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public Matrix Sum(Entity entity)
+        {
+            var result = new Entity[NbRows][];
+            for (var row = 0; row < NbRows; row++)
+            {
+                var values = new Entity[NbColumns];
+                for (var column = 0; column < NbColumns; column++)
+                {
+                    values[column] = GetValue(row, column) + entity;
+                }
+
+                result[row] = values;
+            }
+
+            return new Matrix(result).Evaluate();
+        }
+
+        /// <summary>
+        /// Calculate pow.
+        /// </summary>
+        /// <param name="nb"></param>
+        /// <returns></returns>
+        public Matrix Pow(int nb)
+        {
+            var result = new Entity[NbRows][];
+            for (var row = 0; row < NbRows; row++)
+            {
+                var values = new Entity[NbColumns];
+                for (var column = 0; column < NbColumns; column++)
+                {
+                    values[column] = MathEntity.Pow(GetValue(row, column), nb);
+                }
+
+                result[row] = values;
+            }
+
+            return new Matrix(result).Evaluate();
+        }
+
+        /// <summary>
+        /// Calculate exponential.
+        /// </summary>
+        /// <returns></returns>
+        public Matrix Exp()
+        {
+            var result = new Entity[NbRows][];
+            for (var row = 0; row < NbRows; row++)
+            {
+                var values = new Entity[NbColumns];
+                for (var column = 0; column < NbColumns; column++)
+                {
+                    values[column] = MathEntity.Exp(GetValue(row, column));
+                }
+
+                result[row] = values;
+            }
+
+            return new Matrix(result).Evaluate();
+        }
+
+        /// <summary>
+        /// Calculate log(sum(exp(matrix)))
+        /// </summary>
+        /// <returns></returns>
+        public Vector Logsumexp()
+        {
+            return Exp().SumAllRows().Log();
         }
 
         #endregion

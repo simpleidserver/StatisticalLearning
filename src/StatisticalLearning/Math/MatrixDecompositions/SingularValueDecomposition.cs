@@ -454,7 +454,7 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                 var arr = new Entity[reducedForm.NbRows][];
                 for (var variableIndex = 0; variableIndex < reducedForm.NbRows; variableIndex++)
                 {
-                    arr[variableIndex] = new Entity[] { $"{VARIABLE_NAME}{variableIndex}" };
+                    arr[variableIndex] = new VariableEntity[] { $"{VARIABLE_NAME}{variableIndex}" };
                 }
 
                 var variablesMatrix = new Matrix(arr);
@@ -533,26 +533,6 @@ namespace StatisticalLearning.Math.MatrixDecompositions
         private static string GetVariableName(int pivotIndex)
         {
             return $"{VARIABLE_NAME}{pivotIndex}";
-        }
-
-        private static Entity Hypotenuse(Entity a, Entity b)
-        {
-            Entity r = 0.0;
-            Entity absA = MathEntity.Abs(a);
-            Entity absB = MathEntity.Abs(b);
-
-            if (absA > absB)
-            {
-                r = b / a;
-                r = absA * MathEntity.Sqrt(1 + r * r);
-            }
-            else if (b != 0)
-            {
-                r = a / b;
-                r = absB * MathEntity.Sqrt(1 + r * r);
-            }
-
-            return r;
         }
 
         private static double Hypotenuse(double a, double b)

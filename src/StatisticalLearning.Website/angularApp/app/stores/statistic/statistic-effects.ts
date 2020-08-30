@@ -3,7 +3,7 @@ import { Actions, Effect, ofType } from '@ngrx/effects';
 import { of } from 'rxjs';
 import { catchError, map, mergeMap } from 'rxjs/operators';
 import { StatisticService } from './services/statistic-service';
-import { ActionTypes, ComputeLogisticRegression, ComputeMultipleLinearRegression, ComputePrincipalComponentAnalysis, ComputeSimpleLinearRegression } from './statistic-actions';
+import { ActionTypes, ComputeLogisticRegression, ComputeMultipleLinearRegression, ComputePrincipalComponentAnalysis, ComputeSimpleLinearRegression, ComputeGaussianNaiveBayes } from './statistic-actions';
 
 @Injectable()
 export class StatisticEffects {
@@ -67,6 +67,20 @@ export class StatisticEffects {
                     .pipe(
                         map(logisticRegression => { return { type: ActionTypes.LOGISTIC_REGRESSION_LOADED, logisticRegression: logisticRegression }; }),
                         catchError(() => of({ type: ActionTypes.ERROR_LOAD_LOGISTIC_REGRESSION }))
+                    );
+            }
+            )
+    );
+
+    @Effect()
+    computeGaussianNaiveBayesRegression$ = this.actions$
+        .pipe(
+            ofType(ActionTypes.COMPUTE_GAUSSIAN_NAIVEBAYES),
+            mergeMap((evt: ComputeGaussianNaiveBayes) => {
+                return this.statisticService.computeGaussianNaiveBayes(evt.inputs, evt.predict, evt.outputs)
+                    .pipe(
+                        map(gaussianNaiveBayes => { return { type: ActionTypes.GAUSSIAN_NAIVEBAYES_LOADED, gaussianNaiveBayes: gaussianNaiveBayes }; }),
+                        catchError(() => of({ type: ActionTypes.ERROR_LOAD_GAUSSIAN_NAIVEBAYES }))
                     );
             }
             )

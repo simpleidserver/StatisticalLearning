@@ -17,7 +17,18 @@ namespace StatisticalLearning.Math.Entities
 
         public override int CompareTo(object obj)
         {
-            throw new NotImplementedException();
+            return -1;
+        }
+
+        public override int GetHashCode()
+        {
+            var result = Name.GetHashCode();
+            foreach(var child in Children)
+            {
+                result += child.GetHashCode();
+            }
+
+            return result;
         }
 
         public override Entity Derive()
@@ -76,11 +87,15 @@ namespace StatisticalLearning.Math.Entities
                     case Constants.Funcs.EXP:
                         res = System.Math.Exp(result.Number.Value);
                         break;
+                    case Constants.Funcs.LOG:
+                        res = System.Math.Log(result.Number.Value);
+                        break;
                 }
             }
 
             return res;
         }
+
         public override string ToString()
         {
             var firstChild = Children.First();

@@ -29,7 +29,7 @@ namespace StatisticalLearning.Statistic.Regression
                 previousTheta[i] = double.MaxValue;
             }
 
-            while (theta.Substract(previousTheta).Abs().Max().GetNumber() >= 1e-6)
+            while (theta.Substract(previousTheta).Abs().Max().Key.GetNumber() >= 1e-6)
             {
                 Vector a = inputs.Multiply(theta.SetHorizontal()).SumAllRows();
                 var pi = a.Transform(_ => Inverse(_.GetNumber()));

@@ -6,13 +6,15 @@ export interface AppState {
     simpleLinearRegression: fromStatisticStates.SimpleLinearRegressionState,
     multipleLinearRegression: fromStatisticStates.MultipleLinearRegressionState,
     principalComponentAnalysis: fromStatisticStates.PrincipalComponentAnalysisState,
-    logisticRegression: fromStatisticStates.LogisticRegressionState
+    logisticRegression: fromStatisticStates.LogisticRegressionState,
+    gaussianNaiveBayes : fromStatisticStates.GaussianNaiveBayesState
 }
 
 export const selectSimpleLinearRegression = (state: AppState) => state.simpleLinearRegression;
 export const selectMultipleLinearRegression = (state: AppState) => state.multipleLinearRegression;
 export const selectPrincipalComponentAnalysis = (state: AppState) => state.principalComponentAnalysis;
 export const selectLogisticRegression = (state: AppState) => state.logisticRegression;
+export const selectGaussianNaiveBayes = (state: AppState) => state.gaussianNaiveBayes;
 
 export const selectSimpleLinearRegressionResult = createSelector(
     selectSimpleLinearRegression,
@@ -58,9 +60,21 @@ export const selectLogisticRegressionResult = createSelector(
     }
 );
 
+export const selectGaussianNaiveBayesResult = createSelector(
+    selectGaussianNaiveBayes,
+    (state: fromStatisticStates.GaussianNaiveBayesState) => {
+        if (!state || state.content == null) {
+            return null;
+        }
+
+        return state.content;
+    }
+);
+
 export const appReducer = {
     simpleLinearRegression: fromStatisticReducers.SimpleLinearRegressionReducer,
     multipleLinearRegression: fromStatisticReducers.MultipleLinearRegressionReducer,
     principalComponentAnalysis: fromStatisticReducers.PrincipalComponentAnalysisReducer,
-    logisticRegression: fromStatisticReducers.LogisticRegressionReducer
+    logisticRegression: fromStatisticReducers.LogisticRegressionReducer,
+    gaussianNaiveBayes: fromStatisticReducers.GaussianNaiveBayesReducer
 };
