@@ -64,7 +64,7 @@ export class LogisticRegressionLoaded implements Action {
 
 export class ComputeGaussianNaiveBayes implements Action {
     readonly type = ActionTypes.COMPUTE_GAUSSIAN_NAIVEBAYES;
-    constructor(public inputs: number[][], public predict : number[], public outputs: number[]) { }
+    constructor(public inputs: number[][], public predict : number[][], public outputs: number[]) { }
 }
 
 export class GaussianNaiveBayesLoaded implements Action {

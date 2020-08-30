@@ -39,7 +39,7 @@ export class StatisticService {
         return this.http.post<LogisticRegressionResult>(targetUrl, request, { headers: headers });
     }
 
-    computeGaussianNaiveBayes(inputs: number[][], predict: number[], outputs: number[]) : Observable<GaussianNaiveBayesResult> {
+    computeGaussianNaiveBayes(inputs: number[][], predict: number[][], outputs: number[]) : Observable<GaussianNaiveBayesResult> {
         const request = JSON.stringify({ inputs: inputs, outputs: outputs, predict : predict });
         let headers = new HttpHeaders();
         const targetUrl = process.env.API_URL + "/statistic/classifiers/gaussiannaivebayes";
