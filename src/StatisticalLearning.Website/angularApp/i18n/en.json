@@ -35,5 +35,6 @@
   "logistic-regression": "Logistic regression",
   "gaussian-naivebayes": "Gaussian Naive Bayes Classifier",
   "probabilities": "Probabilities",
-  "data": "Data"
+  "data": "Data",
+  "linear-discriminant-analysis": "Linear discriminant analysis"
 }

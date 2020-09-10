@@ -7,7 +7,8 @@ export interface AppState {
     multipleLinearRegression: fromStatisticStates.MultipleLinearRegressionState,
     principalComponentAnalysis: fromStatisticStates.PrincipalComponentAnalysisState,
     logisticRegression: fromStatisticStates.LogisticRegressionState,
-    gaussianNaiveBayes : fromStatisticStates.GaussianNaiveBayesState
+    gaussianNaiveBayes: fromStatisticStates.GaussianNaiveBayesState,
+    linearDiscriminantAnalysis : fromStatisticStates.LinearDiscriminantAnalysisState
 }
 
 export const selectSimpleLinearRegression = (state: AppState) => state.simpleLinearRegression;
@@ -15,6 +16,7 @@ export const selectMultipleLinearRegression = (state: AppState) => state.multipl
 export const selectPrincipalComponentAnalysis = (state: AppState) => state.principalComponentAnalysis;
 export const selectLogisticRegression = (state: AppState) => state.logisticRegression;
 export const selectGaussianNaiveBayes = (state: AppState) => state.gaussianNaiveBayes;
+export const selectLinearDiscriminantAnalysis = (state: AppState) => state.linearDiscriminantAnalysis;
 
 export const selectSimpleLinearRegressionResult = createSelector(
     selectSimpleLinearRegression,
@@ -71,10 +73,24 @@ export const selectGaussianNaiveBayesResult = createSelector(
     }
 );
 
+
+export const selectLinearDiscriminantAnalysisResult = createSelector(
+    selectLinearDiscriminantAnalysis,
+    (state: fromStatisticStates.LinearDiscriminantAnalysisState) => {
+        if (!state || state.content == null) {
+            return null;
+        }
+
+        return state.content;
+    }
+);
+
+
 export const appReducer = {
     simpleLinearRegression: fromStatisticReducers.SimpleLinearRegressionReducer,
     multipleLinearRegression: fromStatisticReducers.MultipleLinearRegressionReducer,
     principalComponentAnalysis: fromStatisticReducers.PrincipalComponentAnalysisReducer,
     logisticRegression: fromStatisticReducers.LogisticRegressionReducer,
-    gaussianNaiveBayes: fromStatisticReducers.GaussianNaiveBayesReducer
+    gaussianNaiveBayes: fromStatisticReducers.GaussianNaiveBayesReducer,
+    linearDiscriminantAnalysis: fromStatisticReducers.LinearDiscriminantAnalysisReducer
 };

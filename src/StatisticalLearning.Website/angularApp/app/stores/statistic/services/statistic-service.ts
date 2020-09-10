@@ -5,6 +5,7 @@ import { LinearRegressionResult } from "../models/linear-regression.result";
 import { PrincipalComponentAnalysisResult } from "../models/pca.result";
 import { LogisticRegressionResult } from "../models/logistic-regression.result";
 import { GaussianNaiveBayesResult } from '../models/gaussian-naivebayes.result';
+import { LinearDiscriminantAnalysisResult } from '../models/lda.result';
 
 @Injectable({
     providedIn: 'root'
@@ -28,6 +29,15 @@ export class StatisticService {
         headers = headers.set('Accept', 'application/json');
         headers = headers.set('Content-Type', 'application/json');
         return this.http.post<PrincipalComponentAnalysisResult>(targetUrl, request, { headers: headers });
+    }
+
+    computeLinearDiscriminantAnalysis(input: number[][], output: string[]): Observable<LinearDiscriminantAnalysisResult> {
+        const request = JSON.stringify({ input: input, output : output });
+        let headers = new HttpHeaders();
+        const targetUrl = process.env.API_URL + "/statistic/analysis/lda";
+        headers = headers.set('Accept', 'application/json');
+        headers = headers.set('Content-Type', 'application/json');
+        return this.http.post<LinearDiscriminantAnalysisResult>(targetUrl, request, { headers: headers });
     }
 
     computeLogisticRegression(inputs: number[][], outputs : number[]): Observable<LogisticRegressionResult> {

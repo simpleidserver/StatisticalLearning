@@ -2,6 +2,7 @@
 import { PrincipalComponentAnalysisResult } from './models/pca.result';
 import { LogisticRegressionResult } from './models/logistic-regression.result';
 import { GaussianNaiveBayesResult } from './models/gaussian-naivebayes.result';
+import { LinearDiscriminantAnalysisResult } from './models/lda.result';
 
 export interface SimpleLinearRegressionState {
     content: LinearRegressionResult
@@ -21,4 +22,8 @@ export interface LogisticRegressionState {
 
 export interface GaussianNaiveBayesState {
     content: GaussianNaiveBayesResult;
+}
+
+export interface LinearDiscriminantAnalysisState {
+    content: LinearDiscriminantAnalysisResult;
 }

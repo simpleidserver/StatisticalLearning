@@ -10,6 +10,15 @@ namespace StatisticalLearning.Api.Host.Extensions
 {
     public static class DTOExtensions
     {
+        public static DTOs.Responses.LinearDiscriminantClassResponse ToDto(this LinearDiscriminantClass ld)
+        {
+            return new DTOs.Responses.LinearDiscriminantClassResponse
+            {
+                EigenValue = ld.EingenValue,
+                Eigenvector = ld.EingenVector
+            };
+        }
+
         public static DTOs.Responses.PrincipalComponentResponse ToDto(this PrincipalComponent pc)
         {
             return new DTOs.Responses.PrincipalComponentResponse

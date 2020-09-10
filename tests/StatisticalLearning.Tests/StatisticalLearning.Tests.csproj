@@ -13,4 +13,12 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\StatisticalLearning\StatisticalLearning.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\datasets\iris.data" Link="Data\iris.data">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

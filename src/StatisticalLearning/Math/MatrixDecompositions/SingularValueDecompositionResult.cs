@@ -5,6 +5,7 @@ namespace StatisticalLearning.Math.MatrixDecompositions
 {
     public class SingularValueDecompositionResult
     {
+        public Matrix Input { get; set; }
         public Matrix U { get; set; }
         public Matrix S { get; set; }
         public Matrix V { get; set; }

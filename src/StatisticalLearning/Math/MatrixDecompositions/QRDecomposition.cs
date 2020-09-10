@@ -56,18 +56,13 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                     var r = qi.Transpose().Multiply(am).Evaluate();
                     var num = r.GetValue(0, 0);
                     var tmp = qi.Multiply(num);
-                    if (num.IsNumberEntity(out NumberEntity ne) && ne.Number.Value < 0)
-                    {
-                        tmp = tmp.Multiply(Number.Create(-1));
-                    }
-
                     if (substractQ == null)
                     {
-                        substractQ = tmp;
+                        substractQ = tmp.Evaluate();
                     }
                     else
                     {
-                        substractQ = substractQ.Substract(tmp);
+                        substractQ = substractQ.Sum(tmp).Evaluate();
                     }
 
                     rArr[j][i] = num;
@@ -87,9 +82,9 @@ namespace StatisticalLearning.Math.MatrixDecompositions
                     sum += MathEntity.Pow(val, 2);
                 }
 
-                var lastR = MathEntity.Sqrt(sum);
+                var lastR = MathEntity.Sqrt(sum).Eval();
                 rArr[i][i] = lastR;
-                var q = qp.Multiply(1 / lastR);
+                var q = qp.Multiply(1 / lastR).Evaluate();
                 var columnVector = q.GetColumnVector(0);
                 for(int z = 0; z < columnVector.Length; z++)
                 {

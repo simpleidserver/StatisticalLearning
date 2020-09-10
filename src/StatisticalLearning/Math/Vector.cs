@@ -146,6 +146,31 @@ namespace StatisticalLearning.Math
             return new Vector(result);
         }
 
+        /// <summary>
+        /// Calculate the norm.
+        /// http://mathonline.wikidot.com/the-norm-of-a-vector#:~:text=Definition%3A%20If%20%2C%20then%20the%20Norm,%2B%20u_n%5E2%7D%24.
+        /// </summary>
+        /// <returns></returns>
+        public Entity Norm(bool isContSign = false)
+        {
+            Entity sum = 0;
+            foreach(var val in Values)
+            {
+                sum += MathEntity.Pow(val, 2);
+            }
+
+            var result =  MathEntity.Sqrt(sum).Eval();
+            if (isContSign)
+            {
+                if ((Values[0].GetNumber() < 0 && result.GetNumber() < 0) || (Values[0].GetNumber() > 0 && result.GetNumber() > 0))
+                {
+                    result = (result * -1).Eval();
+                }
+            }
+
+            return result;
+        }
+
         public Vector Substract(Vector vector)
         {
             var result = new Entity[vector.Length];
@@ -258,7 +283,7 @@ namespace StatisticalLearning.Math
             Entity totalSum = 0;
             foreach (var value in _values)
             {
-                totalSum += value;
+                totalSum = totalSum + value;
             }
 
             return (totalSum / _values.Length).Eval().GetNumber();

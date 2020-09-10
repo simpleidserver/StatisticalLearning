@@ -3,7 +3,7 @@ import { Actions, Effect, ofType } from '@ngrx/effects';
 import { of } from 'rxjs';
 import { catchError, map, mergeMap } from 'rxjs/operators';
 import { StatisticService } from './services/statistic-service';
-import { ActionTypes, ComputeLogisticRegression, ComputeMultipleLinearRegression, ComputePrincipalComponentAnalysis, ComputeSimpleLinearRegression, ComputeGaussianNaiveBayes } from './statistic-actions';
+import { ActionTypes, ComputeLogisticRegression, ComputeMultipleLinearRegression, ComputePrincipalComponentAnalysis, ComputeSimpleLinearRegression, ComputeGaussianNaiveBayes, ComputeLinearDiscriminantAnalysis } from './statistic-actions';
 
 @Injectable()
 export class StatisticEffects {
@@ -81,6 +81,22 @@ export class StatisticEffects {
                     .pipe(
                         map(gaussianNaiveBayes => { return { type: ActionTypes.GAUSSIAN_NAIVEBAYES_LOADED, gaussianNaiveBayes: gaussianNaiveBayes }; }),
                         catchError(() => of({ type: ActionTypes.ERROR_LOAD_GAUSSIAN_NAIVEBAYES }))
+                    );
+            }
+            )
+    );
+
+
+
+    @Effect()
+    computeLinearDiscriminantAnalysis$ = this.actions$
+        .pipe(
+            ofType(ActionTypes.COMPUTE_LINEAR_DISCRIMINANT_ANALYSIS),
+            mergeMap((evt: ComputeLinearDiscriminantAnalysis) => {
+                return this.statisticService.computeLinearDiscriminantAnalysis(evt.input, evt.output)
+                    .pipe(
+                        map(lda => { return { type: ActionTypes.LINEAR_DISCRIMINANT_ANALYSIS_LOADED, lda: lda }; }),
+                        catchError(() => of({ type: ActionTypes.ERROR_LOAD_LINEAR_DISCRIMINANT_ANALYSIS }))
                     );
             }
             )

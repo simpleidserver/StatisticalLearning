@@ -3,6 +3,7 @@ import { LinearRegressionResult } from './models/linear-regression.result';
 import { PrincipalComponentAnalysisResult } from './models/pca.result';
 import { LogisticRegressionResult } from './models/logistic-regression.result';
 import { GaussianNaiveBayesResult } from './models/gaussian-naivebayes.result';
+import { LinearDiscriminantAnalysisResult } from './models/lda.result';
 
 export enum ActionTypes {
     COMPUTE_SIMPLE_LINEAR_REGRESSION = "[Statistic] COMPUTE_SIMPLE_LINEAR_REGRESSION",
@@ -19,7 +20,11 @@ export enum ActionTypes {
     ERROR_LOAD_LOGISTIC_REGRESSION = "[Statistic] ERROR_LOAD_LOGISTIC_REGRESSION",
     COMPUTE_GAUSSIAN_NAIVEBAYES = "[Statistic] COMPUTE_GAUSSIAN_NAIVEBAYES",
     GAUSSIAN_NAIVEBAYES_LOADED = "[Statistic] GAUSSIAN_NAIVEBAYES_LOADED",
-    ERROR_LOAD_GAUSSIAN_NAIVEBAYES = "[Statistic] ERROR_LOAD_GAUSSIAN_NAIVEBAYES"
+    ERROR_LOAD_GAUSSIAN_NAIVEBAYES = "[Statistic] ERROR_LOAD_GAUSSIAN_NAIVEBAYES",
+    COMPUTE_LINEAR_DISCRIMINANT_ANALYSIS = "[Statistic] COMPUTE_LINEAR_DISCRIMINANT_ANALYSIS",
+    LINEAR_DISCRIMINANT_ANALYSIS_LOADED = "[Statistic] LINEAR_DISCRIMINANT_ANALYSIS_LOADED",
+    ERROR_LOAD_LINEAR_DISCRIMINANT_ANALYSIS = "[Statistic] ERROR_LOAD_LINEAR_DISCRIMINANT_ANALYSIS"
+
 }
 
 export class ComputeSimpleLinearRegression implements Action {
@@ -72,9 +77,19 @@ export class GaussianNaiveBayesLoaded implements Action {
     constructor(public gaussianNaiveBayes: GaussianNaiveBayesResult) { }
 }
 
+export class ComputeLinearDiscriminantAnalysis implements Action {
+    readonly type = ActionTypes.COMPUTE_LINEAR_DISCRIMINANT_ANALYSIS;
+    constructor(public input: number[][], public output: string[]) { }
+}
+
+export class LinearDiscriminantAnalysisLoaded implements Action {
+    readonly type = ActionTypes.LINEAR_DISCRIMINANT_ANALYSIS_LOADED;
+    constructor(public lda: LinearDiscriminantAnalysisResult) { }
+}
+
 export type ActionsUnion =
     ComputeSimpleLinearRegression |
-    SimpleLinearRegressionLoaded | 
+    SimpleLinearRegressionLoaded |
     ComputeMultipleLinearRegression |
     MultipleLinearRegressionLoaded |
     ComputePrincipalComponentAnalysis |
@@ -82,4 +97,6 @@ export type ActionsUnion =
     ComputeLogisticRegression |
     LogisticRegressionLoaded |
     ComputeGaussianNaiveBayes |
-    GaussianNaiveBayesLoaded;
+    GaussianNaiveBayesLoaded |
+    ComputeLinearDiscriminantAnalysis |
+    LinearDiscriminantAnalysisLoaded;

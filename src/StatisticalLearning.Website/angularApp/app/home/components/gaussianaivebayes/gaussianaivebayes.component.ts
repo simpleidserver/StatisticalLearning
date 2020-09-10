@@ -10,7 +10,7 @@ import { GaussianNaiveBayesResult } from '../../../stores/statistic/models/gauss
     styleUrls: ['./gaussianaivebayes.component.scss']
 })
 export class GaussianNaiveBayesComponent implements OnInit {
-    gaussianNaiveBayesResult: GaussianNaiveBayesResult;
+    gaussianNaiveBayesResult: GaussianNaiveBayesResult = new GaussianNaiveBayesResult();
     inputs: number[][] = [
         [0, 1],
         [0, 2],

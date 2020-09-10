@@ -15,6 +15,7 @@ namespace StatisticalLearning.Api.Host.Controllers
     [Route("statistic")]
     public class StatisticController : Controller
     {
+        // Retourner linear discriminant analysis + Afficher en angular.
         [HttpPost("regressions/linear")]
         public IActionResult GetLinarRegressionResult([FromBody] GetLinearRegressionRequest request)
         {
@@ -55,6 +56,20 @@ namespace StatisticalLearning.Api.Host.Controllers
             {
                 PrincipalComponents = pcs.PrincipalComponents.Select(_ => _.ToDto()).ToArray(),
                 Transformed = transformed.DoubleValues
+            };
+            return new OkObjectResult(result);
+        }
+
+        [HttpPost("analysis/lda")]
+        public IActionResult GetLinearDiscriminantAnalysisResult([FromBody] GetLinearDiscriminantAnalysisRequest request)
+        {
+            var linearDiscriminantAnalysis = new LinearDiscriminantAnalysis();
+            linearDiscriminantAnalysis.Compute(request.Input, request.Output);
+            var transformed = linearDiscriminantAnalysis.Transform(request.Input);
+            var result = new LinearDiscriminantAnalysisResponse
+            {
+                Transformed = transformed.DoubleValues,
+                LinearDiscriminantClasses = linearDiscriminantAnalysis.Result.Classes.Select(_ => _.ToDto()).ToArray()
             };
             return new OkObjectResult(result);
         }

@@ -10,11 +10,6 @@ namespace StatisticalLearning.Math.MatrixDecompositions
     {
         private static string VARIABLE_NAME = "x";
 
-        public SingularValueDecomposition()
-        {
-
-        }
-
         public SingularValueDecompositionResult Result { get; private set; }
 
         public SingularValueDecomposition DecomposeNaive(Matrix matrix)
@@ -71,7 +66,8 @@ namespace StatisticalLearning.Math.MatrixDecompositions
             {
                 U = u,
                 S = sum,
-                V = v
+                V = v,
+                Input = matrix
             };
             return this;
         }
@@ -427,7 +423,8 @@ namespace StatisticalLearning.Math.MatrixDecompositions
             {
                 S = Matrix.BuildIdentityMatrix(q),
                 U = u,
-                V = v
+                V = v,
+                Input = a
             };
             return this;
         }
